@@ -14,6 +14,19 @@ export interface TimelineForecastBarProps
 }
 
 const TimelineForecastBar: FC<TimelineForecastBarProps> = ({ forecast, className, ...props }) => {
+  // Guard: if expected date is missing or invalid, render a muted placeholder
+  if (!forecast?.expected || !dayjs(forecast.expected).isValid()) {
+    return (
+      <div
+        data-slot="timeline-forecast-bar"
+        className={cn('flex flex-col gap-2', className)}
+        {...props}
+      >
+        <span className="text-sm text-muted-foreground italic">No forecast available yet</span>
+      </div>
+    );
+  }
+
   const expected = dayjs(forecast.expected);
   const low = dayjs(forecast.low);
   const high = dayjs(forecast.high);

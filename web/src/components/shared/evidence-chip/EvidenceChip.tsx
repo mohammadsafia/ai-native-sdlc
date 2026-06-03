@@ -11,7 +11,7 @@ const EvidenceChip: FC<EvidenceChipProps> = ({ label, className, ...props }) => 
     <span
       data-slot="evidence-chip"
       className={cn(
-        'inline-flex items-center rounded border border-border bg-surface px-1 font-mono text-xs text-primary',
+        'inline-flex items-center rounded border border-muted-200 bg-muted-100 px-1 font-mono text-xs text-foreground dark:border-muted-200 dark:bg-primary-100 dark:text-foreground',
         className,
       )}
       {...props}
