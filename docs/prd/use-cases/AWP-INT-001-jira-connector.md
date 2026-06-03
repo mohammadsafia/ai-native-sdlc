@@ -41,7 +41,7 @@ This is a **Phase 0** connector — the first half of the deterministic traceabi
 sources that is **built**, not bought, because issue keys are the join key for Tier-0
 entity resolution ([`02`](../02-technical-foundation.md) §2). The connector's job ends at
 the ingestion bus: it **emits raw events**, it does **not** normalize them — that is
-[`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md). It stores raw payloads
+[`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md). It stores raw payloads
 **immutably** so normalization can be re-derived when logic changes (replayability is
 non-negotiable, [`02`](../02-technical-foundation.md) §1).
 
@@ -137,7 +137,7 @@ Scenario: Duplicate webhook delivery is idempotent
     And the duplicate is recorded once in the idempotency ledger.
 
 ## Out of Scope
-- Normalization / mapping to the canonical `Artifact`/`Event` model — [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md).
+- Normalization / mapping to the canonical `Artifact`/`Event` model — [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md).
 - Entity resolution (parsing Jira keys into links) — that consumes normalized data downstream.
 - Any write to Jira (comments, transitions, field edits) — read-only packet, no write-back ever.
 - Bitbucket and Confluence ingestion — [`AWP-INT-002`](./AWP-INT-002-bitbucket-connector.md), [`AWP-INT-003`](./AWP-INT-003-confluence-connector.md).
@@ -145,7 +145,7 @@ Scenario: Duplicate webhook delivery is idempotent
 
 ## Dependencies / Linked Packets
 - **depends_on** — none; this is a Phase 0 leaf that feeds the bus.
-- **relates_to** [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md) — the normalizer is the
+- **relates_to** [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md) — the normalizer is the
   immediate downstream consumer of every raw event this connector emits; the provenance envelope
   (`source`, `source_id`, `fetch_time`, `schema_version`) is the contract between them.
 

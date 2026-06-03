@@ -57,7 +57,7 @@ does not call the SDLC tool APIs directly. The five controls of Rule 2
 inherit them by construction.
 
 What already exists and is **not** re-built here: the platform identity/RBAC/secrets
-vault and tenant isolation ([`AWP-PLAT-001`](./AWP-PLAT-001-platform-core.md)), and the
+vault and tenant isolation ([`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md)), and the
 immutable, append-only audit log ([`AWP-PLAT-002`](./AWP-PLAT-002-audit-log.md)). This
 engine **extends** that audit log with two write-back-specific fields — the
 **previewed diff** and the **approver** — but does not own the log storage itself. The
@@ -177,14 +177,14 @@ Scenario: A rollback restores the prior captured state and is itself audited
 - Owning the audit-log **storage** — that is
   [`AWP-PLAT-002`](./AWP-PLAT-002-audit-log.md); this engine appends write-back records to it.
 - Identity/RBAC, the secrets vault, and tenant isolation — owned by
-  [`AWP-PLAT-001`](./AWP-PLAT-001-platform-core.md).
+  [`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md).
 - Deciding *what* to write (generating issue content / packets) — owned by callers such as
   [`AWP-GEN-001`](./AWP-GEN-001-use-case-generator.md).
 - Read-only tool sync (connectors); this engine governs writes only.
 - Merging PRs — forbidden by policy here and never offered as an action type.
 
 ## Dependencies / Linked Packets
-- **depends_on** [`AWP-PLAT-001`](./AWP-PLAT-001-platform-core.md) (identity, RBAC,
+- **depends_on** [`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md) (identity, RBAC,
   secrets vault, tenant isolation — supplies the separate read/write credentials and the
   actor identity stamped on audits), [`AWP-PLAT-002`](./AWP-PLAT-002-audit-log.md) (the
   append-only audit store this engine extends with `previewed_diff` + `approver`).

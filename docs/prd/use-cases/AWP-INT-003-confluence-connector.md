@@ -46,7 +46,7 @@ body in **storage format** (the form that preserves embedded Jira issue macros a
 than rendered/flattened text, plus inline comments and version history.
 
 The connector emits **raw events to the ingestion bus** with provenance and retains raw payloads
-immutably for replay; it does **not** normalize (that is [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md))
+immutably for replay; it does **not** normalize (that is [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md))
 and does **not** resolve the Jira links itself (downstream ER). Incremental sync keys on the page
 **version number** — a page is re-fetched only when its version increments. It is **strictly
 read-only**, **tenant-scoped**, and never logs credentials.
@@ -130,7 +130,7 @@ Scenario: Tenant-scoped emission
     And no page from any space outside tenant A's configured `space_keys` is fetched or emitted.
 
 ## Out of Scope
-- Normalization to the canonical model — [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md).
+- Normalization to the canonical model — [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md).
 - Resolving the captured Jira macros/links into graph edges — downstream entity resolution.
 - Any write to Confluence (pages, comments, edits) — read-only packet, no write-back ever.
 - Jira and Bitbucket ingestion — [`AWP-INT-001`](./AWP-INT-001-jira-connector.md), [`AWP-INT-002`](./AWP-INT-002-bitbucket-connector.md).
@@ -139,7 +139,7 @@ Scenario: Tenant-scoped emission
 
 ## Dependencies / Linked Packets
 - **depends_on** — none; Phase 0 leaf feeding the bus.
-- **relates_to** [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md) — the normalizer is the
+- **relates_to** [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md) — the normalizer is the
   immediate downstream consumer; the storage-format body it receives is what later lets ER recover
   Confluence ↔ Jira links, so the verbatim-capture contract is what this relationship rests on.
 

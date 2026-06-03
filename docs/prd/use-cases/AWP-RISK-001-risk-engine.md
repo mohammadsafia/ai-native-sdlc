@@ -36,8 +36,8 @@ graph artifact that triggered it — not an opaque score.
 ## Context / Background
 This is the **Risk Engine v1** for Phase 1 — one of the headline read-only intelligence
 capabilities (see [`01`](../01-product-architecture.md) §2 P3 and §3 Phase 1 anchor).
-It reads the normalized knowledge graph built by Phase 0 ([`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-store.md))
-with people/links resolved by entity resolution ([`AWP-ER-001`](./AWP-ER-001-entity-resolution-pipeline.md)),
+It reads the normalized knowledge graph built by Phase 0 ([`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-traceability.md))
+with people/links resolved by entity resolution ([`AWP-ER-001`](./AWP-ER-001-entity-resolution-tier01.md)),
 and emits a list of risks. It overlaps the `risks[]` shape produced by the weekly report
 ([`AWP-INTEL-014`](./AWP-INTEL-014-weekly-status-risk-report.md)) and feeds the Project Hub
 ([`AWP-HUB-009`](./AWP-HUB-009-project-hub.md)).
@@ -68,7 +68,7 @@ Risk kinds in v1 (each backed by exactly one named rule):
 ## Data Sources & External APIs
 - **Internal knowledge graph only** (no external API calls; `external_apis: []`). The engine reads a
   **frozen graph snapshot** for a single `project_key` via the internal graph query layer
-  ([`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-store.md)). Entities/edges consumed:
+  ([`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-traceability.md)). Entities/edges consumed:
   - **Issue** nodes: `key`, `type`, `status`, `statusCategory`, `assignee`, `story_points`,
     `sprint`, `updated`, and the **changelog** (status/sprint/scope transition entries, each with an
     `entry_id` and timestamp).
@@ -191,10 +191,10 @@ Scenario: Dependency risk on an unresolved blocked-by chain
 - Live re-fetching from source tools — the engine reads only the frozen graph snapshot.
 
 ## Dependencies / Linked Packets
-- **depends_on** [`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-store.md) — the canonical graph
+- **depends_on** [`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-traceability.md) — the canonical graph
   store and query layer the engine reads; without normalized Issue/Sprint/PR nodes, changelog entries,
   and dependency edges there is nothing to evaluate or cite.
-- **depends_on** [`AWP-ER-001`](./AWP-ER-001-entity-resolution-pipeline.md) — entity resolution stitches
+- **depends_on** [`AWP-ER-001`](./AWP-ER-001-entity-resolution-tier01.md) — entity resolution stitches
   people across tools and resolves issue↔PR links; `resource_overload` (per-assignee counts) and PR-linked
   delivery risks require resolved person/link identity.
 - **relates_to** [`AWP-INTEL-014`](./AWP-INTEL-014-weekly-status-risk-report.md) — shares the

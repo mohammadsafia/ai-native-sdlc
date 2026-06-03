@@ -48,8 +48,8 @@ that text, the traceability spine breaks and downstream ER falls back to expensi
 Tier-2 matching — exactly the failure mode [`02`](../02-technical-foundation.md) §5 warns against.
 
 The connector emits **raw events to the ingestion bus** with provenance and retains raw payloads
-immutably for replay; it does **not** normalize (that is [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md))
-and it does **not** parse the keys itself (that is ER, [`AWP-ER-001`](./AWP-ER-001-tier0-id-linker.md)) —
+immutably for replay; it does **not** normalize (that is [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md))
+and it does **not** parse the keys itself (that is ER, [`AWP-ER-001`](./AWP-ER-001-entity-resolution-tier01.md)) —
 its sole obligation is to deliver the source text **byte-for-byte**. It is **strictly read-only**,
 **tenant-scoped**, and never logs credentials.
 
@@ -128,16 +128,16 @@ Scenario: Duplicate webhook delivery is idempotent
     And the duplicate is recorded once in the idempotency ledger.
 
 ## Out of Scope
-- Normalization to the canonical model — [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md).
-- Parsing/extracting the Jira keys from the captured text into graph links — [`AWP-ER-001`](./AWP-ER-001-tier0-id-linker.md) and [`AWP-INTEL-002`](./AWP-INTEL-002-issue-commit-link-index.md).
+- Normalization to the canonical model — [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md).
+- Parsing/extracting the Jira keys from the captured text into graph links — [`AWP-ER-001`](./AWP-ER-001-entity-resolution-tier01.md) and [`AWP-INTEL-002`](./AWP-INTEL-002-issue-commit-link-index.md).
 - Any write to Bitbucket (comments, approvals, branches, PRs) — read-only packet, no write-back ever.
 - Jira and Confluence ingestion — [`AWP-INT-001`](./AWP-INT-001-jira-connector.md), [`AWP-INT-003`](./AWP-INT-003-confluence-connector.md).
 - Building/operating the bus or raw store themselves (bought infrastructure, [`02`](../02-technical-foundation.md) §1).
 
 ## Dependencies / Linked Packets
 - **depends_on** — none; Phase 0 leaf feeding the bus.
-- **relates_to** [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalizer.md) — downstream normalizer consumer;
-  [`AWP-ER-001`](./AWP-ER-001-tier0-id-linker.md) — the Tier-0 ID linker that depends on the verbatim
+- **relates_to** [`AWP-NORM-001`](./AWP-NORM-001-canonical-normalization.md) — downstream normalizer consumer;
+  [`AWP-ER-001`](./AWP-ER-001-entity-resolution-tier01.md) — the Tier-0 ID linker that depends on the verbatim
   text this connector preserves; [`AWP-INTEL-002`](./AWP-INTEL-002-issue-commit-link-index.md) — the
   issue↔commit link index built from those keys, which the weekly report
   ([`AWP-INTEL-014`](./AWP-INTEL-014-weekly-status-risk-report.md)) consumes.

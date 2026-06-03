@@ -6,9 +6,9 @@
 
 ---
 
-## Authored packets (17)
+## Authored packets (31)
 
-The first execution pass authored these in full — the high-fidelity buildable core (Phases 0–1) plus full-fidelity representatives of the active phases (3–5) to prove the format end to end.
+Authored in full across two passes: the entire **read-only surface (Phases 0–2)** — the credible near-term MVP — plus full-fidelity representatives of the active phases (3–5) to prove the format end to end. 200 Gherkin acceptance criteria; every dependency resolves; all cross-links verified.
 
 ### Phase 0 — Foundation & Connect *(read-only)*
 
@@ -33,6 +33,25 @@ The first execution pass authored these in full — the high-fidelity buildable 
 | [AWP-HUB-009](./use-cases/AWP-HUB-009-project-hub.md) | Project Hub Dashboard | P3 Intelligence | read-only | P0 | ready |
 | [AWP-AI-001](./use-cases/AWP-AI-001-llm-gateway.md) | LLM Gateway (Claude routing, token budgets, injection isolation) | P8 Governance | read-only | P0 | ready |
 
+### Phase 2 — Deepen & Cover *(read-only)*
+
+| ID | Title | Pillar | Type | Pri | Status |
+|----|-------|--------|------|-----|--------|
+| [AWP-INT-004](./use-cases/AWP-INT-004-teams-connector.md) | Microsoft Teams Connector (channels, threads, decisions) | P1 Integration | read-only | P1 | ready |
+| [AWP-INT-005](./use-cases/AWP-INT-005-figma-connector.md) | Figma Connector (files, frames, components, design links) | P1 Integration | read-only | P1 | ready |
+| [AWP-INT-006](./use-cases/AWP-INT-006-miro-connector.md) | Miro Connector (boards, flows, sticky clusters) | P1 Integration | read-only | P1 | ready |
+| [AWP-INT-007](./use-cases/AWP-INT-007-m365-connector.md) | Microsoft 365 Connector (Word/Excel/PDF planning docs) | P1 Integration | read-only | P1 | ready |
+| [AWP-ER-002](./use-cases/AWP-ER-002-entity-resolution-tier2.md) | Entity Resolution — Tier 2 (semantic / AI matching) | P2 Knowledge Graph | read-only | P1 | ready |
+| [AWP-MEM-001](./use-cases/AWP-MEM-001-project-memory.md) | Project Memory (decisions, assumptions, risks, constraints, lessons) | P2 Knowledge Graph | read-only | P1 | ready |
+| [AWP-FCST-001](./use-cases/AWP-FCST-001-timeline-forecast.md) | Timeline Forecast (velocity + sprint history + blockers + scope) | P3 Intelligence | read-only | P1 | ready |
+| [AWP-HEALTH-001](./use-cases/AWP-HEALTH-001-project-health-score.md) | Project Health Score (scope/timeline/velocity/tech-risk composite) | P3 Intelligence | read-only | P1 | ready |
+| [AWP-AGENT-001](./use-cases/AWP-AGENT-001-business-analyst-agent.md) | Business Analyst Agent (advisory) | P4 Authoring | read-only | P1 | ready |
+| [AWP-AGENT-002](./use-cases/AWP-AGENT-002-project-manager-agent.md) | Project Manager Agent (advisory) | P3 Intelligence | read-only | P1 | ready |
+| [AWP-AGENT-003](./use-cases/AWP-AGENT-003-technical-lead-agent.md) | Technical Lead Agent (advisory) | P3 Intelligence | read-only | P1 | ready |
+| [AWP-AGENT-004](./use-cases/AWP-AGENT-004-executive-agent.md) | Executive Agent (advisory) | P7 Portfolio | read-only | P1 | ready |
+| [AWP-PORT-001](./use-cases/AWP-PORT-001-portfolio-analytics.md) | Portfolio Analytics v1 (cross-project health & risk heatmap) | P7 Portfolio | read-only | P1 | ready |
+| [AWP-EVAL-001](./use-cases/AWP-EVAL-001-eval-harness.md) | AI Evaluation Harness (golden sets per capability) | P8 Governance | read-only | P0 | ready |
+
 ### Phases 3–5 — Active write-back & orchestration *(full-fidelity representatives)*
 
 | ID | Title | Pillar | Phase | Type | Pri | Status |
@@ -47,25 +66,6 @@ The first execution pass authored these in full — the high-fidelity buildable 
 ## Stub packets (planned)
 
 Named and scoped, not yet authored. IDs are reserved so authored packets can declare dependencies on them today. Most are deliberately lower-fidelity until the phase that needs them.
-
-### Phase 2 — Deepen & Cover *(read-only)*
-
-| ID | Title | Pillar | Notes |
-|----|-------|--------|-------|
-| `AWP-INT-004` | Microsoft Teams Connector (channels, threads, decisions) | P1 Integration | High prompt-injection-risk source; read-only is the safe place to onboard it ([`02`](./02-technical-foundation.md) §4). |
-| `AWP-INT-005` | Figma Connector (files, frames, design links) | P1 Integration | Feeds Design-phase intelligence and the generator. |
-| `AWP-INT-006` | Miro Connector (boards, flows, sticky clusters) | P1 Integration | Discovery-phase artifacts. |
-| `AWP-INT-007` | Microsoft 365 Connector (Word/Excel/PDF planning docs) | P1 Integration | Optional context for the generator. |
-| `AWP-ER-002` | Entity Resolution — Tier 2 (semantic/AI matching) | P2 Knowledge Graph | Embed → block → Claude adjudicates a small candidate set with cited evidence; links surfaced as **suggestions**, human-confirmed. |
-| `AWP-FCST-001` | Timeline Forecast (velocity + sprint history + blockers + scope) | P3 Intelligence | Present as decision-support with error bands; gate exit on accuracy vs. actuals. |
-| `AWP-MEM-001` | Project Memory (decisions, assumptions, risks, constraints, lessons) | P2 Knowledge Graph | Persistent context store feeding agents and the hub. |
-| `AWP-HEALTH-001` | Project Health Score (scope/timeline/velocity/tech-risk composite) | P3 Intelligence | Composite of existing signals; always show inputs/evidence. |
-| `AWP-AGENT-001` | Business Analyst Agent (advisory) | P4 Authoring | Confluence/Miro/Teams; extract requirements, find gaps/contradictions. |
-| `AWP-AGENT-002` | Project Manager Agent (advisory) | P3 Intelligence | Jira/Teams; progress, delay prediction. |
-| `AWP-AGENT-003` | Technical Lead Agent (advisory) | P3 Intelligence | Bitbucket/Jira; architecture/PR risk. |
-| `AWP-AGENT-004` | Executive Agent (advisory) | P7 Portfolio | Cross-system portfolio insight. |
-| `AWP-EVAL-001` | AI Evaluation Harness (golden sets per capability) | P8 Governance | Extraction accuracy, ER precision/recall, summary faithfulness, forecast error; regression-test on every model/prompt change. |
-| `AWP-PORT-001` | Portfolio Analytics v1 (cross-project health & risk heatmap) | P7 Portfolio | Roll the per-project twin up to leadership. |
 
 ### Phase 3 — First Write-Back *(active, low-risk reversible)*
 
@@ -97,4 +97,4 @@ Named and scoped, not yet authored. IDs are reserved so authored packets can dec
 
 ## Coverage note (no silent caps)
 
-This first pass authored **17 of ~41** identified packets in full. The remaining **~24 are stubs** above, deliberately deferred — Phase-2+ packets firm up as the read-only core proves out, and the Phase-6 workspace packets stay directional until the orchestration loop earns trust ([`01`](./01-product-architecture.md) §3). Nothing from the v1.1 vision was dropped; everything is either authored or stubbed with a reserved ID.
+Two passes have authored **31 of ~42** identified packets in full — the entire **read-only surface (Phases 0–2)** plus active-phase representatives. The remaining **11 are stubs** above (Phases 3–6), deliberately deferred: the write-back packets firm up as the read-only core proves out, and the Phase-6 workspace packets stay directional until the orchestration loop earns trust ([`01`](./01-product-architecture.md) §3). Nothing from the v1.1 vision was dropped; everything is either authored or stubbed with a reserved ID.

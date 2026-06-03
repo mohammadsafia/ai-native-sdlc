@@ -37,7 +37,7 @@ to see, with AI narrative clearly labeled apart from graph facts, and with hones
 ## Context / Background
 The Project Hub is the **Phase 1 read-only UI surface** that renders the intelligence produced by the
 other Phase 1 packets (see [`01`](../01-product-architecture.md) §2 P3 and §3 Phase 1 anchor). It is a
-**React dashboard, one view per project**, served from the platform's **internal API** ([`AWP-PLAT-001`](./AWP-PLAT-001-platform-api-rbac.md));
+**React dashboard, one view per project**, served from the platform's **internal API** ([`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md));
 it calls **no external tool APIs directly** (`external_apis: []`) — Jira/Bitbucket data reaches it only
 through the already-ingested, already-permission-filtered graph and intelligence read models.
 
@@ -50,7 +50,7 @@ It composes existing outputs and adds **no new analysis of its own**:
 Hard constraints from [`02`](../02-technical-foundation.md):
 - **Tenant + RBAC scoped, honoring source-tool permissions** (§4): if a user cannot see the underlying
   Jira project at the source, they must not see that project's hub at all — visibility ACLs propagate
-  from the connectors, not just app roles. Enforced server-side by [`AWP-PLAT-001`](./AWP-PLAT-001-platform-api-rbac.md);
+  from the connectors, not just app roles. Enforced server-side by [`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md);
   the hub must never render data the API would not return for that user.
 - **Separate graph facts from AI inferences** (§4): every AI-generated narrative (the report narrative,
   any risk recommendation prose) is rendered with an explicit, visible **"AI"** label distinguishing it
@@ -64,7 +64,7 @@ no write-back to any tool and carries no Guardrails block.
 
 ## Data Sources & External APIs
 - **Internal platform API only** (`external_apis: []`; no third-party auth/scopes). The hub fetches, per
-  `project_id`, from [`AWP-PLAT-001`](./AWP-PLAT-001-platform-api-rbac.md):
+  `project_id`, from [`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md):
   - `GET /projects/{project_id}/health` → Health Score read model.
   - `GET /projects/{project_id}/risks` → `risks[]` from [`AWP-RISK-001`](./AWP-RISK-001-risk-engine.md).
   - `GET /projects/{project_id}/weekly-report` → `WeeklyReport` from [`AWP-INTEL-014`](./AWP-INTEL-014-weekly-status-risk-report.md).
@@ -150,7 +150,7 @@ Scenario: Health, Risk Overview, and the report all render together for an autho
 - **Write-back / editing** of any artifact (no transitions, comments, PRs) — strictly read-only; no Guardrails.
 - **Cross-project / portfolio rollups** and executive dashboards (P7, later phase).
 - Direct calls to Jira/Bitbucket/Confluence from the client (the hub uses only the internal API).
-- Defining the RBAC/permission propagation logic — that is owned by [`AWP-PLAT-001`](./AWP-PLAT-001-platform-api-rbac.md);
+- Defining the RBAC/permission propagation logic — that is owned by [`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md);
   the hub only honors the API's authorization decisions.
 - Real-time push/streaming updates (Phase 1 is request/refresh; live sync is later).
 
@@ -159,9 +159,9 @@ Scenario: Health, Risk Overview, and the report all render together for an autho
   `WeeklyReport` the report widget renders.
 - **depends_on** [`AWP-RISK-001`](./AWP-RISK-001-risk-engine.md) — supplies `risks[]` for the Risk
   Overview widget.
-- **depends_on** [`AWP-PLAT-001`](./AWP-PLAT-001-platform-api-rbac.md) — the internal API + RBAC layer
+- **depends_on** [`AWP-PLAT-001`](./AWP-PLAT-001-auth-rbac-tenancy.md) — the internal API + RBAC layer
   that enforces tenant scoping and source-tool permission honoring; the hub renders only what it returns.
-- **relates_to** [`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-store.md) — the ultimate source of the
+- **relates_to** [`AWP-GRAPH-001`](./AWP-GRAPH-001-knowledge-graph-traceability.md) — the ultimate source of the
   timeline, decisions, and blockers read models exposed via the API.
 
 ## Non-Functional Requirements
