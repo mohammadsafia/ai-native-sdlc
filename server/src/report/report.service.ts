@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { WeeklyReportDto, ReportItemDto, RiskDto } from './report.dto';
 import { DemoDataService } from '../demo/demo-data.service';
+import { NarrativeService, NarrativeInput } from './narrative.service';
 
 export interface ReportOptions {
   windowDays?: number;
@@ -66,16 +67,18 @@ export interface RawPullRequest {
 
 // ---------------------------------------------------------------------------
 // Pure computation (no Prisma, no DemoDataService — just data → DTO)
+// Accepts an optional async narrative generator so both paths can reuse it.
 // ---------------------------------------------------------------------------
 
-export function computeFromData(
+export async function computeFromData(
   projectId: string,
   projectKey: string,
   artifacts: RawArtifact[],
   commits: RawCommit[],
   openPrs: RawPullRequest[],
   opts: ReportOptions = {},
-): WeeklyReportDto {
+  narrativeFn?: (input: NarrativeInput) => Promise<string>,
+): Promise<WeeklyReportDto> {
   const {
     staleDays = 3,
     prIdleDays = 2,
@@ -189,19 +192,45 @@ export function computeFromData(
   }
 
   // --- 6. Narrative ---------------------------------------------------------
-  const staleKeys = staleArtifacts.map((a) => `[[${a.key}]]`).join(', ') || 'none';
-  const scopeCreepKeys = scopeCreepArtifacts.map((a) => `[[${a.key}]]`).join(', ') || 'none';
-  const narrative =
-    `Sprint summary: ${doneArtifacts.length} done, ` +
-    `${inProgressArtifacts.length} in-progress, ` +
-    `${blockedArtifacts.length} blocked, ` +
-    `${todoArtifacts.length} to-do. ` +
-    `Points: ${pointsCompleted}/${pointsCommitted} completed. ` +
-    `${staleArtifacts.length} stale story(ies) (${stalenessMode === 'commit' ? 'commit-based' : 'Jira-update proxy'}, ${staleDays}+ days): ${staleKeys}. ` +
-    `${scopeCreepArtifacts.length} scope-creep item(s) added after sprint start: ${scopeCreepKeys}. ` +
-    `${idlePrs.length} idle PR(s) (no update in ${prIdleDays}+ days). ` +
-    `${risks.length} risk(s) detected. ` +
-    `NOTE: narrative will be Claude-generated once the LLM gateway is wired.`;
+  let narrative: string;
+
+  if (narrativeFn) {
+    const narrativeInput: NarrativeInput = {
+      projectKey,
+      periodEnd: nextFriday(asOf).toISOString().slice(0, 10),
+      summary: {
+        done: doneArtifacts.length,
+        inProgress: inProgressArtifacts.length,
+        todo: todoArtifacts.length,
+        blocked: blockedArtifacts.length,
+        pointsCompleted,
+        pointsCommitted,
+      },
+      staleStoryKeys: staleArtifacts.map((a) => a.key),
+      scopeCreepKeys: scopeCreepArtifacts.map((a) => a.key),
+      idlePrCount: idlePrs.length,
+      riskCount: risks.length,
+      stalenessMode,
+      staleDays,
+      prIdleDays,
+    };
+    narrative = await narrativeFn(narrativeInput);
+  } else {
+    // Deterministic fallback template (also used by NarrativeService when no key)
+    const staleKeys = staleArtifacts.map((a) => `[[${a.key}]]`).join(', ') || 'none';
+    const scopeCreepKeys = scopeCreepArtifacts.map((a) => `[[${a.key}]]`).join(', ') || 'none';
+    narrative =
+      `Sprint summary: ${doneArtifacts.length} done, ` +
+      `${inProgressArtifacts.length} in-progress, ` +
+      `${blockedArtifacts.length} blocked, ` +
+      `${todoArtifacts.length} to-do. ` +
+      `Points: ${pointsCompleted}/${pointsCommitted} completed. ` +
+      `${staleArtifacts.length} stale story(ies) (${stalenessMode === 'commit' ? 'commit-based' : 'Jira-update proxy'}, ${staleDays}+ days): ${staleKeys}. ` +
+      `${scopeCreepArtifacts.length} scope-creep item(s) added after sprint start: ${scopeCreepKeys}. ` +
+      `${idlePrs.length} idle PR(s) (no update in ${prIdleDays}+ days). ` +
+      `${risks.length} risk(s) detected. ` +
+      `NOTE: narrative will be Claude-generated once the LLM gateway is wired.`;
+  }
 
   // --- 7. Derived period-end (next Friday relative to asOf) ----------------
   const periodEnd = nextFriday(asOf).toISOString().slice(0, 10);
@@ -248,6 +277,7 @@ export class ReportService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly demoDataService: DemoDataService,
+    private readonly narrativeService: NarrativeService,
   ) {}
 
   async compute(projectKey: string, opts: ReportOptions = {}): Promise<WeeklyReportDto> {
@@ -264,7 +294,7 @@ export class ReportService {
   // Demo path
   // -------------------------------------------------------------------------
 
-  private computeDemo(projectKey: string, opts: ReportOptions): WeeklyReportDto {
+  private async computeDemo(projectKey: string, opts: ReportOptions): Promise<WeeklyReportDto> {
     const project = this.demoDataService.getProject(projectKey);
     if (!project) {
       throw new NotFoundException(`Project with key "${projectKey}" not found`);
@@ -276,7 +306,15 @@ export class ReportService {
       .getPullRequests(projectKey)
       .filter((pr) => pr.state === 'OPEN');
 
-    return computeFromData(project.id, projectKey, artifacts, commits, openPrs, opts);
+    return computeFromData(
+      project.id,
+      projectKey,
+      artifacts,
+      commits,
+      openPrs,
+      opts,
+      (input) => this.narrativeService.generate(input),
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -323,7 +361,15 @@ export class ReportService {
     const rawCommits = commits as unknown as RawCommit[];
     const rawPrs = openPrs as unknown as RawPullRequest[];
 
-    return computeFromData(project.id, project.key, rawArtifacts, rawCommits, rawPrs, opts);
+    return computeFromData(
+      project.id,
+      project.key,
+      rawArtifacts,
+      rawCommits,
+      rawPrs,
+      opts,
+      (input) => this.narrativeService.generate(input),
+    );
   }
 }
 

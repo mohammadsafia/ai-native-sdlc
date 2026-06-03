@@ -62,11 +62,11 @@ describe('DemoDataService', () => {
       expect(prs.length).toBeGreaterThan(0);
     });
 
-    it('report has a stale story', () => {
+    it('report has a stale story', async () => {
       const arts = service.getArtifacts('FALCON');
       const commits = service.getCommits('FALCON');
       const openPrs = service.getPullRequests('FALCON').filter((p) => p.state === 'OPEN');
-      const report = computeFromData('demo-project-falcon', 'FALCON', arts, commits, openPrs, {
+      const report = await computeFromData('demo-project-falcon', 'FALCON', arts, commits, openPrs, {
         asOf: FROZEN_NOW,
         staleDays: 3,
       });
@@ -74,11 +74,11 @@ describe('DemoDataService', () => {
       expect(report.staleStories.length).toBeGreaterThan(0);
     });
 
-    it('report has a scope-creep risk (PROJ-5 added after sprint start)', () => {
+    it('report has a scope-creep risk (PROJ-5 added after sprint start)', async () => {
       const arts = service.getArtifacts('FALCON');
       const commits = service.getCommits('FALCON');
       const openPrs = service.getPullRequests('FALCON').filter((p) => p.state === 'OPEN');
-      const report = computeFromData('demo-project-falcon', 'FALCON', arts, commits, openPrs, {
+      const report = await computeFromData('demo-project-falcon', 'FALCON', arts, commits, openPrs, {
         asOf: FROZEN_NOW,
         staleDays: 3,
       });
@@ -86,11 +86,11 @@ describe('DemoDataService', () => {
       expect(scopeCreepRisks.length).toBeGreaterThan(0);
     });
 
-    it('report has an idle PR (PR 101 last updated 2026-05-30, > 2 days before 2026-06-04)', () => {
+    it('report has an idle PR (PR 101 last updated 2026-05-30, > 2 days before 2026-06-04)', async () => {
       const arts = service.getArtifacts('FALCON');
       const commits = service.getCommits('FALCON');
       const openPrs = service.getPullRequests('FALCON').filter((p) => p.state === 'OPEN');
-      const report = computeFromData('demo-project-falcon', 'FALCON', arts, commits, openPrs, {
+      const report = await computeFromData('demo-project-falcon', 'FALCON', arts, commits, openPrs, {
         asOf: FROZEN_NOW,
         prIdleDays: 2,
         staleDays: 3,
@@ -106,11 +106,11 @@ describe('DemoDataService', () => {
       expect(arts).toHaveLength(5);
     });
 
-    it('report is healthy (no blocked, no high risks, no stale stories)', () => {
+    it('report is healthy (no blocked, no high risks, no stale stories)', async () => {
       const arts = service.getArtifacts('ORION');
       const commits = service.getCommits('ORION');
       const openPrs = service.getPullRequests('ORION').filter((p) => p.state === 'OPEN');
-      const report = computeFromData('demo-project-orion', 'ORION', arts, commits, openPrs, {
+      const report = await computeFromData('demo-project-orion', 'ORION', arts, commits, openPrs, {
         asOf: FROZEN_NOW,
         staleDays: 3,
         prIdleDays: 2,
@@ -137,22 +137,22 @@ describe('DemoDataService', () => {
       expect(blocked.length).toBeGreaterThan(0);
     });
 
-    it('report has at least one blocked artifact in summary', () => {
+    it('report has at least one blocked artifact in summary', async () => {
       const arts = service.getArtifacts('ATLAS');
       const commits = service.getCommits('ATLAS');
       const openPrs = service.getPullRequests('ATLAS').filter((p) => p.state === 'OPEN');
-      const report = computeFromData('demo-project-atlas', 'ATLAS', arts, commits, openPrs, {
+      const report = await computeFromData('demo-project-atlas', 'ATLAS', arts, commits, openPrs, {
         asOf: FROZEN_NOW,
         staleDays: 3,
       });
       expect(report.summary.blocked).toBeGreaterThan(0);
     });
 
-    it('report has a stale in-progress artifact (ATLAS-2, updated 10 days ago)', () => {
+    it('report has a stale in-progress artifact (ATLAS-2, updated 10 days ago)', async () => {
       const arts = service.getArtifacts('ATLAS');
       const commits = service.getCommits('ATLAS');
       const openPrs = service.getPullRequests('ATLAS').filter((p) => p.state === 'OPEN');
-      const report = computeFromData('demo-project-atlas', 'ATLAS', arts, commits, openPrs, {
+      const report = await computeFromData('demo-project-atlas', 'ATLAS', arts, commits, openPrs, {
         asOf: FROZEN_NOW,
         staleDays: 3,
       });

@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DemoDataService } from '../demo/demo-data.service';
+import { NarrativeService } from './narrative.service';
 
 // Minimal ConfigService mock: DEMO_MODE = false (Prisma path)
 const mockConfigService = { get: jest.fn().mockReturnValue(false) };
@@ -16,6 +17,36 @@ const mockDemoDataService = {
   getCommits: jest.fn().mockReturnValue([]),
   getPullRequests: jest.fn().mockReturnValue([]),
   getSprints: jest.fn().mockReturnValue([]),
+};
+
+// NarrativeService mock — always returns undefined so computeFromData falls
+// back to the template (keeps existing report spec assertions deterministic).
+// The `generate` stub returns undefined so the narrativeFn path still runs but
+// produces the template via NarrativeService.buildTemplate internally.
+// Simpler: return undefined → computeFromData receives a fn that resolves to
+// undefined, which would break things. Instead we mock it with the real
+// buildTemplate behaviour: just return undefined and let tests pass by using
+// the fallback path. But wait — computeFromData ALWAYS calls narrativeFn when
+// provided. So we need the mock to return the template string.
+// We provide a simple stub that builds the template via NarrativeService.
+const mockNarrativeService = {
+  generate: jest.fn().mockImplementation((input) => {
+    // Return deterministic template (no API key path)
+    const staleKeys = input.staleStoryKeys.map((k: string) => `[[${k}]]`).join(', ') || 'none';
+    const creepKeys = input.scopeCreepKeys.map((k: string) => `[[${k}]]`).join(', ') || 'none';
+    return Promise.resolve(
+      `Sprint summary: ${input.summary.done} done, ` +
+      `${input.summary.inProgress} in-progress, ` +
+      `${input.summary.blocked} blocked, ` +
+      `${input.summary.todo} to-do. ` +
+      `Points: ${input.summary.pointsCompleted}/${input.summary.pointsCommitted} completed. ` +
+      `${input.staleStoryKeys.length} stale story(ies) (${input.stalenessMode === 'commit' ? 'commit-based' : 'Jira-update proxy'}, ${input.staleDays}+ days): ${staleKeys}. ` +
+      `${input.scopeCreepKeys.length} scope-creep item(s) added after sprint start: ${creepKeys}. ` +
+      `${input.idlePrCount} idle PR(s) (no update in ${input.prIdleDays}+ days). ` +
+      `${input.riskCount} risk(s) detected. ` +
+      `NOTE: narrative will be Claude-generated once the LLM gateway is wired.`,
+    );
+  }),
 };
 
 // ---------------------------------------------------------------------------
@@ -135,6 +166,7 @@ describe('ReportService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: DemoDataService, useValue: mockDemoDataService },
+        { provide: NarrativeService, useValue: mockNarrativeService },
       ],
     }).compile();
 
@@ -151,6 +183,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -244,6 +277,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaOverload },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -265,6 +299,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaExact },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -404,6 +439,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -422,6 +458,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -439,6 +476,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -458,6 +496,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -479,6 +518,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
@@ -495,6 +535,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
