@@ -1,6 +1,6 @@
 # AI-Native SDLC Platform — Executive Summary
 
-**For:** Leadership & stakeholders · **Date:** June 2026 · **Full detail:** [`docs/prd/`](./00-overview.md)
+**For:** Leadership & stakeholders · **Date:** June 2026 · **Full detail:** [`docs/prd/`](./00-overview.md) · **Diagrams:** [`CONCEPT-DIAGRAM.md`](./CONCEPT-DIAGRAM.md)
 
 ---
 
