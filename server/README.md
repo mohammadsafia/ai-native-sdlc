@@ -64,6 +64,44 @@ cp .env.example .env
 
 ---
 
+## End-to-End Live Run (with Docker + Jira creds)
+
+Once Docker Desktop and your Jira credentials are ready, run this sequence:
+
+```bash
+# 1. Start Postgres
+docker compose up -d
+
+# 2. Apply the schema
+yarn prisma migrate dev
+
+# 3. Set Jira creds in server/.env:
+#    JIRA_BASE_URL=https://yourcompany.atlassian.net
+#    JIRA_EMAIL=you@example.com
+#    JIRA_API_TOKEN=<from id.atlassian.com → Security → API tokens>
+#    JIRA_PROJECT_KEYS=PROJ
+
+# 4. Start the backend
+yarn start:dev
+# Verify: curl http://localhost:3001/api/health
+
+# 5. Trigger a Jira sync
+curl -XPOST http://localhost:3001/api/sync/PROJ
+# Returns: {"issueCount": N, "syncRunId": "..."}
+
+# 6. Check data
+# yarn prisma studio   (GUI browser)
+# curl http://localhost:3001/api/projects/PROJ/weekly-report
+
+# 7. Switch the frontend to live data
+# In web/.env set: VITE_USE_MOCK=false
+# Then:
+cd ../web && yarn dev
+# The Projects and Weekly Report screens now show live Jira data.
+```
+
+---
+
 ## Available Scripts
 
 | Script | Description |
@@ -73,6 +111,7 @@ cp .env.example .env
 | `yarn start` | Run the compiled `dist/main.js` |
 | `yarn test` | Run unit tests (jest) |
 | `yarn prisma` | Shortcut to `prisma` CLI |
+| `yarn generate:openapi` | Build + write `server/swagger.json` (works without DB) |
 
 ---
 

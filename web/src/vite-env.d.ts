@@ -20,6 +20,11 @@ interface ImportMetaEnv {
   readonly VITE_APP_BASE_URL: string;
   readonly VITE_BASE_URL: string;
 
+  // SDLC backend
+  readonly VITE_APP_API_URL: string;
+  /** 'true' = use mock data (default); 'false' = call live NestJS backend */
+  readonly VITE_USE_MOCK: 'true' | 'false' | string;
+
   // Authentication
   readonly VITE_APP_AUTHORITY: string;
   readonly VITE_APP_CLIENT_ID: string;
