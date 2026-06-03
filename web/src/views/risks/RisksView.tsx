@@ -1,6 +1,7 @@
 import { type FC, useState, useMemo } from 'react';
 
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Skeleton } from '@components/ui';
 import { SeverityBadge, EvidenceChip, EmptyState } from '@components/shared';
@@ -11,33 +12,11 @@ import type { RiskKind, Severity } from '@app-types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const KIND_OPTIONS: { value: 'all' | RiskKind; label: string }[] = [
-  { value: 'all', label: 'All kinds' },
-  { value: 'delivery', label: 'Delivery' },
-  { value: 'scope_creep', label: 'Scope Creep' },
-  { value: 'dependency', label: 'Dependency' },
-  { value: 'resource_overload', label: 'Resource Overload' },
-];
-
-const SEVERITY_OPTIONS: { value: 'all' | Severity; label: string }[] = [
-  { value: 'all', label: 'All severities' },
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-];
-
 const KIND_ICONS: Record<RiskKind, typeof ShieldAlert> = {
   delivery: ShieldAlert,
   scope_creep: AlertTriangle,
   dependency: Info,
   resource_overload: AlertTriangle,
-};
-
-const KIND_LABELS: Record<RiskKind, string> = {
-  delivery: 'Delivery',
-  scope_creep: 'Scope Creep',
-  dependency: 'Dependency',
-  resource_overload: 'Resource Overload',
 };
 
 // ─── Skeleton loading rows ────────────────────────────────────────────────────
@@ -81,6 +60,23 @@ function FilterBar({
   onSeverityChange,
   onSearchChange,
 }: FilterBarProps) {
+  const { t } = useTranslation();
+
+  const KIND_OPTIONS: { value: 'all' | RiskKind; label: string }[] = [
+    { value: 'all', label: t('risks.allKinds') },
+    { value: 'delivery', label: t('risks.kinds.delivery') },
+    { value: 'scope_creep', label: t('risks.kinds.scope_creep') },
+    { value: 'dependency', label: t('risks.kinds.dependency') },
+    { value: 'resource_overload', label: t('risks.kinds.resource_overload') },
+  ];
+
+  const SEVERITY_OPTIONS: { value: 'all' | Severity; label: string }[] = [
+    { value: 'all', label: t('risks.allSeverities') },
+    { value: 'high', label: t('risks.severityHigh') },
+    { value: 'medium', label: t('risks.severityMedium') },
+    { value: 'low', label: t('risks.severityLow') },
+  ];
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
       {/* Search */}
@@ -93,8 +89,8 @@ function FilterBar({
           type="search"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search risks…"
-          aria-label="Search risks"
+          placeholder={t('risks.searchPlaceholder')}
+          aria-label={t('risks.searchLabel')}
           className={cn(
             'w-full sm:w-52 rounded-xl border border-border bg-background ps-8 pe-3 py-2 text-sm text-foreground',
             'placeholder:text-muted-foreground transition-colors duration-200',
@@ -113,7 +109,7 @@ function FilterBar({
         <select
           value={kindFilter}
           onChange={(e) => onKindChange(e.target.value as 'all' | RiskKind)}
-          aria-label="Filter by kind"
+          aria-label={t('risks.filterByKind')}
           className={cn(
             'appearance-none rounded-xl border border-border bg-background ps-8 pe-6 py-2 text-sm text-foreground cursor-pointer',
             'transition-colors duration-200',
@@ -132,7 +128,7 @@ function FilterBar({
       {/* Severity segmented control */}
       <div
         role="radiogroup"
-        aria-label="Filter by severity"
+        aria-label={t('risks.filterBySeverity')}
         className="inline-flex items-center gap-0.5 rounded-xl bg-primary-15 p-1"
       >
         {SEVERITY_OPTIONS.map((opt) => {
@@ -178,7 +174,15 @@ interface RiskListRowProps {
 }
 
 function RiskListRow({ id, severity, title, subjectRef, kind, recommendation }: RiskListRowProps) {
+  const { t } = useTranslation();
   const KindIcon = KIND_ICONS[kind];
+
+  const KIND_LABELS: Record<RiskKind, string> = {
+    delivery: t('risks.kinds.delivery'),
+    scope_creep: t('risks.kinds.scope_creep'),
+    dependency: t('risks.kinds.dependency'),
+    resource_overload: t('risks.kinds.resource_overload'),
+  };
 
   return (
     <Link
@@ -188,7 +192,7 @@ function RiskListRow({ id, severity, title, subjectRef, kind, recommendation }: 
         'transition-colors duration-150 hover:bg-primary-15/50',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40',
       )}
-      aria-label={`View risk: ${title}`}
+      aria-label={`${t('risks.title')}: ${title}`}
     >
       {/* Severity badge */}
       <SeverityBadge severity={severity} className="shrink-0 w-14 justify-center" />
@@ -228,21 +232,22 @@ interface SeveritySummaryProps {
 }
 
 function SeveritySummary({ counts }: SeveritySummaryProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2">
       {counts.high > 0 && (
         <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive">
-          {counts.high} high
+          {counts.high} {t('risks.severityHigh').toLowerCase()}
         </span>
       )}
       {counts.medium > 0 && (
         <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-semibold text-warning">
-          {counts.medium} medium
+          {counts.medium} {t('risks.severityMedium').toLowerCase()}
         </span>
       )}
       {counts.low > 0 && (
         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">
-          {counts.low} low
+          {counts.low} {t('risks.severityLow').toLowerCase()}
         </span>
       )}
     </div>
@@ -253,6 +258,7 @@ function SeveritySummary({ counts }: SeveritySummaryProps) {
 
 const RisksView: FC = () => {
   const { data: risks = [], isLoading } = useRisks();
+  const { t } = useTranslation();
 
   const [kindFilter, setKindFilter] = useState<'all' | RiskKind>('all');
   const [severityFilter, setSeverityFilter] = useState<'all' | Severity>('all');
@@ -299,10 +305,10 @@ const RisksView: FC = () => {
       {/* ── Page header ── */}
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Risks</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('risks.title')}</h1>
           {!isLoading && (
             <span className="text-sm text-muted-foreground tabular-nums">
-              {risks.length} total
+              {risks.length} {t('risks.total')}
             </span>
           )}
         </div>
@@ -324,11 +330,11 @@ const RisksView: FC = () => {
         <RisksSkeletonList />
       ) : isEmpty ? (
         <EmptyState
-          title="No risks match"
+          title={t('risks.noMatch')}
           hint={
             hasAnyRisks
-              ? 'Try adjusting your filters or search query.'
-              : 'No risks have been detected yet.'
+              ? t('risks.noMatchHint')
+              : t('risks.noRisksYet')
           }
           className="mt-4"
         />
@@ -337,17 +343,17 @@ const RisksView: FC = () => {
           shadow="sm"
           className="border border-border overflow-hidden"
           role="list"
-          aria-label={`Risks — ${filtered.length} shown`}
+          aria-label={`${t('risks.title')} — ${filtered.length} ${t('risks.shown')}`}
         >
           {/* Table header */}
           <div
             className="hidden sm:grid grid-cols-[5rem_1fr_10rem_14rem_1.5rem] gap-4 items-center border-b border-border bg-surface px-5 py-2.5"
             aria-hidden="true"
           >
-            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">Severity</span>
-            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">Risk / Reference</span>
-            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">Kind</span>
-            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">Recommendation</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">{t('risks.tableColSeverity')}</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">{t('risks.tableColRiskRef')}</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">{t('risks.tableColKind')}</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">{t('risks.tableColRecommendation')}</span>
             <span />
           </div>
 
@@ -369,7 +375,7 @@ const RisksView: FC = () => {
           {/* Footer count */}
           <footer className="border-t border-border bg-surface px-5 py-2.5">
             <span className="text-xs text-muted-foreground tabular-nums">
-              Showing {filtered.length} of {risks.length} risks
+              {t('risks.showingOf', { shown: filtered.length, total: risks.length })}
             </span>
           </footer>
         </Card>

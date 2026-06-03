@@ -2,6 +2,7 @@ import { type FC } from 'react';
 
 import { Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@utils';
 import { usePortfolio } from '@hooks/queries';
@@ -71,6 +72,7 @@ interface TrendIndicatorProps {
 }
 
 function TrendIndicator({ trend }: TrendIndicatorProps) {
+  const { t } = useTranslation();
   if (trend > 0) {
     return (
       <span className="inline-flex items-center gap-0.5 text-xs font-medium text-success">
@@ -90,7 +92,7 @@ function TrendIndicator({ trend }: TrendIndicatorProps) {
   return (
     <span className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground">
       <Minus className="h-3.5 w-3.5" aria-hidden="true" />
-      Flat
+      {t('portfolio.flat')}
     </span>
   );
 }
@@ -143,6 +145,7 @@ function AtRiskRow({ project, isLast }: AtRiskRowProps) {
 
 const PortfolioView: FC = () => {
   const { data: portfolio, isLoading } = usePortfolio();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -156,11 +159,11 @@ const PortfolioView: FC = () => {
     return (
       <div className="p-6">
         <div className="flex items-baseline gap-3 mb-6">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Portfolio</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('portfolio.title')}</h1>
         </div>
         <EmptyState
-          title="No portfolio data available"
-          hint="Connect your project data sources to see the portfolio overview."
+          title={t('portfolio.noPortfolioData')}
+          hint={t('portfolio.noPortfolioDataHint')}
         />
       </div>
     );
@@ -181,9 +184,9 @@ const PortfolioView: FC = () => {
     <div className="p-6 flex flex-col gap-6">
       {/* ── Page header ── */}
       <div className="flex items-baseline gap-3">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Portfolio</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('portfolio.title')}</h1>
         <span className="text-sm text-muted-foreground tabular-nums">
-          {portfolio.projects.length} projects
+          {portfolio.projects.length} {t('portfolio.projects')}
         </span>
       </div>
 
@@ -200,7 +203,7 @@ const PortfolioView: FC = () => {
                 )}
               >
                 <span aria-hidden="true">✦</span>
-                AI-generated
+                {t('common.aiGenerated')}
               </span>
             </div>
 
@@ -217,7 +220,7 @@ const PortfolioView: FC = () => {
         {/* Health heatmap card */}
         <Card className="border border-border md:col-span-2" shadow="sm">
           <Card.Header className="px-5 py-4 pb-2">
-            <Card.Title className="text-sm font-semibold text-foreground">Project Health</Card.Title>
+            <Card.Title className="text-sm font-semibold text-foreground">{t('portfolio.projectHealth')}</Card.Title>
           </Card.Header>
           <Card.Content className="px-5 pb-4">
             <HealthHeatmap projects={portfolio.projects} />
@@ -243,7 +246,7 @@ const PortfolioView: FC = () => {
           {/* Risk rollup card */}
           <Card className="border border-border flex-1" shadow="sm">
             <Card.Header className="px-5 py-3 pb-1">
-              <Card.Title className="text-sm font-semibold text-foreground">Risk by Kind</Card.Title>
+              <Card.Title className="text-sm font-semibold text-foreground">{t('portfolio.riskByKind')}</Card.Title>
             </Card.Header>
             <Card.Content className="px-5 pb-4">
               <RiskRollup riskByKind={portfolio.riskByKind} />
@@ -258,7 +261,7 @@ const PortfolioView: FC = () => {
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-warning" aria-hidden="true" />
             <Card.Title className="text-sm font-semibold text-foreground">
-              At-risk Projects
+              {t('portfolio.atRiskProjects')}
             </Card.Title>
             {atRiskProjects.length > 0 && (
               <span
@@ -273,11 +276,11 @@ const PortfolioView: FC = () => {
         <Card.Content className="px-5 pb-4">
           {atRiskProjects.length === 0 ? (
             <EmptyState
-              title="All projects are healthy"
-              hint="No projects currently require attention."
+              title={t('portfolio.allHealthy')}
+              hint={t('portfolio.allHealthyHint')}
             />
           ) : (
-            <div role="list" aria-label="At-risk projects">
+            <div role="list" aria-label={t('portfolio.atRiskProjects')}>
               {atRiskProjects.map((project, index) => (
                 <div key={project.id} role="listitem">
                   <AtRiskRow

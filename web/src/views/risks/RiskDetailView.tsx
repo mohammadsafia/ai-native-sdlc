@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Skeleton } from '@components/ui';
 import { SeverityBadge, EvidenceChip, EvidenceList, EmptyState } from '@components/shared';
@@ -16,13 +17,6 @@ const KIND_ICONS: Record<RiskKind, typeof ShieldAlert> = {
   scope_creep: AlertTriangle,
   dependency: Info,
   resource_overload: AlertTriangle,
-};
-
-const KIND_LABELS: Record<RiskKind, string> = {
-  delivery: 'Delivery',
-  scope_creep: 'Scope Creep',
-  dependency: 'Dependency',
-  resource_overload: 'Resource Overload',
 };
 
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
@@ -104,6 +98,14 @@ export interface RiskDetailViewProps {
 
 const RiskDetailView: FC<RiskDetailViewProps> = ({ id }) => {
   const { data: risk, isLoading } = useRisk(id);
+  const { t } = useTranslation();
+
+  const KIND_LABELS: Record<RiskKind, string> = {
+    delivery: t('risks.kinds.delivery'),
+    scope_creep: t('risks.kinds.scope_creep'),
+    dependency: t('risks.kinds.dependency'),
+    resource_overload: t('risks.kinds.resource_overload'),
+  };
 
   if (isLoading) return <RiskDetailSkeleton />;
 
@@ -119,11 +121,11 @@ const RiskDetailView: FC<RiskDetailViewProps> = ({ id }) => {
           )}
         >
           <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-          Back to Risks
+          {t('risks.backToRisks')}
         </Link>
         <EmptyState
-          title="Risk not found"
-          hint="This risk may have been removed or the ID is incorrect."
+          title={t('risks.riskNotFound')}
+          hint={t('risks.riskNotFoundHint')}
           className="mt-4"
         />
       </div>
@@ -144,7 +146,7 @@ const RiskDetailView: FC<RiskDetailViewProps> = ({ id }) => {
         )}
       >
         <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-        Back to Risks
+        {t('risks.backToRisks')}
       </Link>
 
       {/* ── Header card ── */}
@@ -166,7 +168,7 @@ const RiskDetailView: FC<RiskDetailViewProps> = ({ id }) => {
       </Card>
 
       {/* ── Evidence section ── */}
-      <SectionCard icon={FileText} title="Evidence">
+      <SectionCard icon={FileText} title={t('risks.evidence')}>
         <div className="flex flex-col gap-3">
           <EvidenceList items={[risk.subjectRef]} />
           <p className="text-sm text-foreground leading-relaxed">{risk.evidence}</p>
@@ -174,7 +176,7 @@ const RiskDetailView: FC<RiskDetailViewProps> = ({ id }) => {
       </SectionCard>
 
       {/* ── Recommendation section ── */}
-      <SectionCard icon={Lightbulb} title="Recommendation">
+      <SectionCard icon={Lightbulb} title={t('risks.recommendation')}>
         <p className="text-sm text-foreground leading-relaxed">{risk.recommendation}</p>
       </SectionCard>
     </div>
