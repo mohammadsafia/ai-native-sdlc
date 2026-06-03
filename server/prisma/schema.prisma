@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id           String    @id @default(cuid())
+  key          String    @unique
+  name         String
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sprints   Sprint[]
+  artifacts Artifact[]
+  syncRuns  SyncRun[]
+
+  @@map("projects")
+}
+
+model Sprint {
+  id               String    @id @default(cuid())
+  projectId        String
+  jiraSprintId     Int?      @unique
+  name             String
+  state            String    // active | closed | future
+  startDate        DateTime?
+  endDate          DateTime?
+  committedPoints  Float?
+  completedPoints  Float?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  artifacts Artifact[]
+
+  @@map("sprints")
+}
+
+model Artifact {
+  id                     String    @id @default(cuid())
+  projectId              String
+  key                    String    @unique
+  type                   String    // story | bug | task | epic | sub_task
+  status                 String    // raw Jira status name
+  statusCategory         String    // todo | in_progress | done | blocked
+  assignee               String?
+  points                 Float?
+  sprintId               String?
+  jiraUpdatedAt          DateTime
+  addedToSprintAfterStart Boolean  @default(false)
+  raw                    Json
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint  Sprint?  @relation(fields: [sprintId], references: [id])
+
+  @@map("artifacts")
+}
+
+model SyncRun {
+  id          String    @id @default(cuid())
+  projectId   String
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  issueCount  Int       @default(0)
+  status      String    // running | success | failed
+  errorMessage String?
+  createdAt   DateTime  @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("sync_runs")
+}
