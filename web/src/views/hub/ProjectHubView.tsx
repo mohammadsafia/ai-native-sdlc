@@ -17,7 +17,7 @@ import RiskRow from '@components/shared/risk-row/RiskRow';
 import DecisionRow from '@components/shared/decision-row/DecisionRow';
 import TimelineForecastBar from '@components/shared/timeline-forecast-bar/TimelineForecastBar';
 import EmptyState from '@components/shared/empty-state/EmptyState';
-import { FULL_ROUTES_PATH } from '@routes/routes';
+import { FULL_ROUTES_PATH } from '@routes';
 
 // ─── Loading skeleton ──────────────────────────────────────────────────────────
 
