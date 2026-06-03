@@ -6,14 +6,19 @@
  * sprint, decisions, blockers, forecast, trace, velocityHistory) are filled
  * with sensible defaults so the UI renders without errors.
  *
- * NOTE: In live mode the `id` field of returned projects is set to `key`
- * (the Jira project key) so that URL routing and weekly-report fetches work
- * without an extra lookup.  This is intentional for this slice.
+ * - The Hub (`getProject`) fetches the project summary AND its weekly report in
+ *   parallel, so `project.report` and `project.risks` are real (not empty).
+ * - The Projects list (`getProjects`) can't cheaply fetch every report, so it
+ *   fills `risks` with `openRiskCount` placeholders purely so the count column
+ *   is accurate; the Risks screen itself is a separate (mock) data source.
+ *
+ * In live mode the `id` field of returned projects is set to `key` (the Jira
+ * project key) so URL routing and weekly-report fetches work without a lookup.
  */
 
 import { httpClient } from '@api/config/HttpClient';
 import { ApiEndpoints } from '@api/config/ApiEndpoints';
-import type { Project, WeeklyReport } from '@app-types';
+import type { Project, Risk, WeeklyReport } from '@app-types';
 
 // ─── Backend DTO shapes (subset of what the server actually returns) ──────────
 
@@ -35,7 +40,7 @@ interface BackendProjectSummary {
 // WeeklyReportDto from the server is structurally identical to WeeklyReport.
 type BackendWeeklyReport = WeeklyReport & { projectKey?: string };
 
-// ─── Empty / default report used when the hub view needs project.report ───────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function emptyReport(projectId: string): WeeklyReport {
   const now = new Date().toISOString();
@@ -54,14 +59,27 @@ function emptyReport(projectId: string): WeeklyReport {
   };
 }
 
-// ─── Mapper ───────────────────────────────────────────────────────────────────
+// Placeholder risks so the Projects-list "Open Risks" count is accurate without
+// fetching each project's full report. Only the array length is read by the list.
+function placeholderRisks(projectId: string, n: number): Risk[] {
+  return Array.from({ length: Math.max(0, n) }, (_, i) => ({
+    id: `${projectId}-r${i}`,
+    projectId,
+    kind: 'delivery',
+    severity: 'medium',
+    title: '',
+    subjectRef: '',
+    evidence: '',
+    recommendation: '',
+  }));
+}
 
 /**
  * Map a BackendProjectSummary to the full frontend Project shape.
- * id is set to key so routing + weekly-report fetches work without N+1.
- * Fields not yet exposed (lead, sprint, decisions, etc.) get safe defaults.
+ * When `report` is provided (Hub), `report`/`risks` are real; otherwise (list)
+ * `risks` is a length-only placeholder of `openRiskCount`.
  */
-function toProject(dto: BackendProjectSummary): Project {
+function toProject(dto: BackendProjectSummary, report?: WeeklyReport): Project {
   const id = dto.key; // use Jira key as id in live mode
   return {
     id,
@@ -76,33 +94,32 @@ function toProject(dto: BackendProjectSummary): Project {
     },
     lead: { id: '', name: '—', initials: '?', role: '' },
     sprint: { id: '', name: '—', committed: 0, completed: 0, start: '', end: '' },
-    risks: [],
+    risks: report ? report.risks : placeholderRisks(id, dto.openRiskCount),
     decisions: [],
     blockers: [],
     forecast: { expected: '', low: '', high: '', confidence: 0, basisSprints: [] },
     velocityHistory: [],
-    report: emptyReport(id),
+    report: report ?? emptyReport(id),
     trace: [],
   };
 }
 
 // ─── Fetchers ─────────────────────────────────────────────────────────────────
 
-/**
- * GET /api/projects → list of project summaries
- */
+/** GET /api/projects → list of project summaries */
 export async function getProjects(): Promise<Project[]> {
   const data = await httpClient.get<BackendProjectSummary[]>(ApiEndpoints.SDLC.PROJECTS);
-  return data.map(toProject);
+  return data.map((dto) => toProject(dto));
 }
 
-/**
- * GET /api/projects/:key → single project (id = key in live mode)
- */
+/** GET /api/projects/:key (+ its weekly report) → a fully-populated Project for the Hub */
 export async function getProject(key: string): Promise<Project> {
-  const url = ApiEndpoints.SDLC.PROJECT.replace(':key', encodeURIComponent(key));
-  const data = await httpClient.get<BackendProjectSummary>(url);
-  return toProject(data);
+  const summaryUrl = ApiEndpoints.SDLC.PROJECT.replace(':key', encodeURIComponent(key));
+  const [summary, report] = await Promise.all([
+    httpClient.get<BackendProjectSummary>(summaryUrl),
+    getWeeklyReport(key).catch(() => undefined),
+  ]);
+  return toProject(summary, report);
 }
 
 /**
@@ -112,7 +129,6 @@ export async function getProject(key: string): Promise<Project> {
 export async function getWeeklyReport(key: string): Promise<WeeklyReport> {
   const url = ApiEndpoints.SDLC.WEEKLY_REPORT.replace(':key', encodeURIComponent(key));
   const data = await httpClient.get<BackendWeeklyReport>(url);
-  // Strip the server-only `projectKey` field if present
   const { projectKey: _pk, ...report } = data;
   return report as WeeklyReport;
 }
