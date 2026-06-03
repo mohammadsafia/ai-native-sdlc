@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { Card, Skeleton } from '@components/ui';
 import { SeverityBadge, EvidenceChip, EmptyState } from '@components/shared';
-import { cn } from '@utils';
+import { cn, FOCUS_RING } from '@utils';
 import { useRisks } from '@hooks/queries';
 import { Search, ShieldAlert, AlertTriangle, Info, ChevronRight, Filter } from 'lucide-react';
 import type { RiskKind, Severity } from '@app-types';
@@ -143,8 +143,15 @@ function FilterBar({
               role="radio"
               aria-checked={active}
               onClick={() => onSeverityChange(opt.value as 'all' | Severity)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSeverityChange(opt.value as 'all' | Severity);
+                }
+              }}
               className={cn(
                 'inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                FOCUS_RING,
                 active
                   ? 'bg-background text-foreground shadow-sm shadow-border'
                   : 'text-muted-foreground hover:text-foreground',

@@ -33,6 +33,7 @@ const RiskRollup: FC<RiskRollupProps> = ({ riskByKind, className, ...props }) =>
                 className="h-full rounded-full bg-destructive/60 transition-all"
                 style={{ width: `${(count / maxCount) * 100}%` }}
                 role="progressbar"
+                aria-label={`${KIND_LABELS[kind]} risk count`}
                 aria-valuenow={count}
                 aria-valuemin={0}
                 aria-valuemax={maxCount}

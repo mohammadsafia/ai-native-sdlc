@@ -64,6 +64,7 @@ const HealthRing: FC<HealthRingProps> = ({ score, subScores, className, ...props
                 className={cn('h-full rounded-full transition-all', subScoreColor(value))}
                 style={{ width: `${value}%` }}
                 role="progressbar"
+                aria-label={`${SUB_SCORE_LABELS[key]}: ${value}`}
                 aria-valuenow={value}
                 aria-valuemin={0}
                 aria-valuemax={100}

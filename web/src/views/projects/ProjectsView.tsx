@@ -2,7 +2,7 @@ import { type FC, useState, useMemo } from 'react';
 
 import { Skeleton } from '@components/ui';
 import { ProjectCard, EmptyState } from '@components/shared';
-import { cn } from '@utils';
+import { cn, FOCUS_RING } from '@utils';
 import { useProjects } from '@hooks/queries';
 import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import type { Project, ProjectStatus } from '@app-types';
@@ -79,8 +79,15 @@ function StatusSegment({ value, onChange, counts }: StatusSegmentProps) {
             role="radio"
             aria-checked={active}
             onClick={() => onChange(opt.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onChange(opt.value);
+              }
+            }}
             className={cn(
               'relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
+              FOCUS_RING,
               active
                 ? 'bg-background text-foreground shadow-sm shadow-border'
                 : 'text-muted-foreground hover:text-foreground',
