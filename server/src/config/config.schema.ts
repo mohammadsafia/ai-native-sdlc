@@ -4,7 +4,10 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
   JIRA_BASE_URL: z
     .string()
-    .url('JIRA_BASE_URL must be a valid URL (e.g. https://yourcompany.atlassian.net)')
+    .refine(
+      (val) => val === '' || /^https?:\/\/.+/.test(val),
+      'JIRA_BASE_URL must be a valid URL (e.g. https://yourcompany.atlassian.net)',
+    )
     .optional()
     .default(''),
   JIRA_EMAIL: z.string().optional().default(''),

@@ -19,12 +19,25 @@ class AxiosAdapter implements HttpAdapter {
 
 @Injectable()
 export class JiraClient {
-  private readonly http: HttpAdapter;
+  private http: HttpAdapter | null = null;
 
-  constructor(private readonly config: ConfigService, http?: HttpAdapter) {
-    if (http) {
-      this.http = http;
-    } else {
+  /** Injected only in unit tests via `withHttpAdapter`; production uses axios. */
+  private testHttp: HttpAdapter | undefined;
+
+  constructor(private readonly config: ConfigService) {}
+
+  /**
+   * Allow unit tests to swap in a fake HTTP adapter without touching DI.
+   * Call this before `searchIssues` in tests.
+   */
+  withHttpAdapter(http: HttpAdapter): this {
+    this.testHttp = http;
+    return this;
+  }
+
+  private getHttp(): HttpAdapter {
+    if (this.testHttp) return this.testHttp;
+    if (!this.http) {
       const axiosInstance = axios.create({
         baseURL: this.config.get<string>('JIRA_BASE_URL'),
         auth: {
@@ -37,6 +50,7 @@ export class JiraClient {
       });
       this.http = new AxiosAdapter(axiosInstance);
     }
+    return this.http;
   }
 
   /**
@@ -53,7 +67,7 @@ export class JiraClient {
     const allIssues: JiraIssue[] = [];
 
     while (true) {
-      const page = await this.http.get<JiraSearchResponse>(
+      const page = await this.getHttp().get<JiraSearchResponse>(
         '/rest/api/3/search',
         {
           jql,

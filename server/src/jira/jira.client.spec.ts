@@ -22,7 +22,7 @@ describe('JiraClient', () => {
   beforeEach(() => {
     fakeHttp = new FakeHttpAdapter();
     const configService = { get: jest.fn() } as unknown as ConfigService;
-    client = new JiraClient(configService, fakeHttp);
+    client = new JiraClient(configService).withHttpAdapter(fakeHttp);
   });
 
   it('paginates across two pages and returns all 7 issues', async () => {
