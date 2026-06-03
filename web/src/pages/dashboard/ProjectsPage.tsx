@@ -1,7 +1,9 @@
+import ProjectsView from '@views/projects/ProjectsView';
+
 export default function ProjectsPage() {
   return (
-    <div className="p-6 text-foreground">
-      Projects
+    <div className="p-6">
+      <ProjectsView />
     </div>
   );
 }
