@@ -1,7 +1,5 @@
+import WeeklyReportView from '@views/reports/WeeklyReportView';
+
 export default function WeeklyReportPage() {
-  return (
-    <div className="p-6 text-foreground">
-      Weekly Report
-    </div>
-  );
+  return <WeeklyReportView />;
 }
