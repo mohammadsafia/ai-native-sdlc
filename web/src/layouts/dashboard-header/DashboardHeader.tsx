@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, DropdownMenu } from '@components/ui';
 import { Conditional } from '@components/utils';
@@ -9,6 +10,50 @@ import { useAuth } from '@hooks/shared';
 import { FULL_ROUTES_PATH } from '@routes';
 
 import { Bell, HelpCircle, LogOut, Settings, User } from 'lucide-react';
+import { cn } from '@utils';
+
+// ─── EN / AR language toggle ──────────────────────────────────────────────────
+
+function LanguageToggle() {
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language?.startsWith('ar') ? 'ar' : 'en';
+
+  const langs: { value: string; label: string }[] = [
+    { value: 'en', label: 'EN' },
+    { value: 'ar', label: 'AR' },
+  ];
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Language"
+      className="inline-flex items-center gap-0.5 rounded-lg bg-primary-15 p-0.5"
+    >
+      {langs.map(({ value, label }) => {
+        const active = currentLang === value;
+        return (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={active}
+            onClick={() => i18n.changeLanguage(value)}
+            className={cn(
+              'inline-flex items-center justify-center rounded-md px-2.5 py-1 text-xs font-semibold transition-all duration-200',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+              active
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
 
 function DashboardHeader() {
   const navigate = useNavigate();
@@ -26,6 +71,12 @@ function DashboardHeader() {
 
       {/* Right Section: Actions */}
       <div className="flex items-center gap-1">
+        {/* Language toggle */}
+        <LanguageToggle />
+
+        {/* Separator */}
+        <div className="bg-border mx-1 hidden h-5 w-px md:block" />
+
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative h-9 w-9" aria-label="Notifications">
           <Bell className="h-4 w-4" />
