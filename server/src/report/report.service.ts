@@ -161,7 +161,7 @@ export async function computeFromData(
       kind: 'scope_creep',
       severity: 'high',
       subjectRef: a.key,
-      title: `Scope creep: [[${a.key}]] added after sprint start`,
+      title: `Scope creep: ${a.key} added after sprint start`,
       evidence: `${a.key} was added to the sprint after it started`,
       recommendation:
         'Review with PM whether this issue should be moved to backlog or is genuinely urgent.',
