@@ -157,7 +157,7 @@ const TraceabilityGraph: FC<TraceabilityGraphProps> = ({ nodes, className, ...pr
                       aria-pressed={isSelected}
                       aria-label={`${node.label}${isOrphan ? ' (orphan)' : ''}${node.status === 'in-progress' ? ' (in-progress)' : ''}`}
                       className={cn(
-                        'w-full rounded border px-2 py-1.5 text-left text-2xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
+                        'w-full rounded border px-2 py-1.5 text-start text-2xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                         // Base style
                         !isOrphan && 'border-border bg-background text-foreground',
                         // Orphan: destructive outline
@@ -196,7 +196,7 @@ const TraceabilityGraph: FC<TraceabilityGraphProps> = ({ nodes, className, ...pr
           <span className="h-3 w-3 rounded border border-destructive bg-destructive-200" />
           Orphan
         </span>
-        <span className="ml-auto text-2xs">Click a node to highlight its chain</span>
+        <span className="ms-auto text-2xs">Click a node to highlight its chain</span>
       </div>
     </div>
   );

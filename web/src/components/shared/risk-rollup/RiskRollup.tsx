@@ -39,7 +39,7 @@ const RiskRollup: FC<RiskRollupProps> = ({ riskByKind, className, ...props }) =>
                 aria-valuemax={maxCount}
               />
             </div>
-            <span className="w-4 text-right text-xs font-semibold text-foreground">{count}</span>
+            <span className="w-4 text-end text-xs font-semibold text-foreground">{count}</span>
           </div>
         </div>
       ))}

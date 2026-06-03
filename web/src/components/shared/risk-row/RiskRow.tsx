@@ -32,7 +32,7 @@ const RiskRow: FC<RiskRowProps> = ({ risk, className, ...props }) => {
         <span className="flex-1 text-sm font-medium text-foreground">{risk.title}</span>
         <SeverityBadge severity={risk.severity} />
       </div>
-      <div className="flex items-center gap-1.5 pl-4 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1.5 ps-4 text-xs text-muted-foreground">
         <span>{risk.evidence}</span>
         <EvidenceChip label={risk.subjectRef} />
       </div>

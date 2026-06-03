@@ -132,7 +132,7 @@ const ProjectHubView: FC = () => {
           >
             Projects
           </Link>
-          <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/50" aria-hidden="true" />
+          <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/50 rtl:rotate-180" aria-hidden="true" />
           <span className="text-foreground/70">{project.name}</span>
         </nav>
 

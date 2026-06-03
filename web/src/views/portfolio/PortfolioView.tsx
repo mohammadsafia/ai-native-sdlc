@@ -131,7 +131,7 @@ function AtRiskRow({ project, isLast }: AtRiskRowProps) {
       <div className="flex items-center gap-2 shrink-0">
         <HealthBadge score={project.health.overall} label={project.health.label} />
         <ArrowRight
-          className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+          className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180"
           aria-hidden="true"
         />
       </div>

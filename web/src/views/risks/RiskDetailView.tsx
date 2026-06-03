@@ -118,7 +118,7 @@ const RiskDetailView: FC<RiskDetailViewProps> = ({ id }) => {
             'focus-visible:outline-none focus-visible:underline',
           )}
         >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
           Back to Risks
         </Link>
         <EmptyState

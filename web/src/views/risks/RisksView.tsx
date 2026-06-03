@@ -86,7 +86,7 @@ function FilterBar({
       {/* Search */}
       <div className="relative flex items-center">
         <Search
-          className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-muted-foreground"
+          className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
           aria-hidden="true"
         />
         <input
@@ -96,7 +96,7 @@ function FilterBar({
           placeholder="Search risks…"
           aria-label="Search risks"
           className={cn(
-            'w-full sm:w-52 rounded-xl border border-border bg-background pl-8 pr-3 py-2 text-sm text-foreground',
+            'w-full sm:w-52 rounded-xl border border-border bg-background ps-8 pe-3 py-2 text-sm text-foreground',
             'placeholder:text-muted-foreground transition-colors duration-200',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
             'hover:border-primary/30',
@@ -107,7 +107,7 @@ function FilterBar({
       {/* Kind filter */}
       <div className="relative flex items-center">
         <Filter
-          className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-muted-foreground"
+          className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
           aria-hidden="true"
         />
         <select
@@ -115,7 +115,7 @@ function FilterBar({
           onChange={(e) => onKindChange(e.target.value as 'all' | RiskKind)}
           aria-label="Filter by kind"
           className={cn(
-            'appearance-none rounded-xl border border-border bg-background pl-8 pr-6 py-2 text-sm text-foreground cursor-pointer',
+            'appearance-none rounded-xl border border-border bg-background ps-8 pe-6 py-2 text-sm text-foreground cursor-pointer',
             'transition-colors duration-200',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
             'hover:border-primary/30',
@@ -214,7 +214,7 @@ function RiskListRow({ id, severity, title, subjectRef, kind, recommendation }: 
 
       {/* Chevron */}
       <ChevronRight
-        className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5"
+        className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5 rtl:rotate-180"
         aria-hidden="true"
       />
     </Link>

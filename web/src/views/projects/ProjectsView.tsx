@@ -45,7 +45,7 @@ function ProjectsSkeletonGrid() {
           <div className="flex items-center gap-4">
             <Skeleton shape="text" size="xs" className="w-16" />
             <Skeleton shape="text" size="xs" className="w-24" />
-            <Skeleton shape="text" size="xs" className="w-14 ml-auto" />
+            <Skeleton shape="text" size="xs" className="w-14 ms-auto" />
           </div>
           <div className="flex justify-end">
             <Skeleton shape="rectangle" size="xs" className="w-16 h-5" />
@@ -187,7 +187,7 @@ const ProjectsView: FC = () => {
         {/* Search input */}
         <div className="relative flex items-center">
           <Search
-            className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-muted-foreground"
+            className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
             aria-hidden="true"
           />
           <input
@@ -197,7 +197,7 @@ const ProjectsView: FC = () => {
             placeholder="Search by name or key…"
             aria-label="Search projects"
             className={cn(
-              'w-full sm:w-56 rounded-xl border border-border bg-background pl-8 pr-3 py-2 text-sm text-foreground',
+              'w-full sm:w-56 rounded-xl border border-border bg-background ps-8 pe-3 py-2 text-sm text-foreground',
               'placeholder:text-muted-foreground transition-colors duration-200',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background',
               'hover:border-primary/30',
@@ -208,7 +208,7 @@ const ProjectsView: FC = () => {
         {/* Sort select */}
         <div className="relative flex items-center">
           <ArrowUpDown
-            className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-muted-foreground"
+            className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
             aria-hidden="true"
           />
           <select
@@ -216,7 +216,7 @@ const ProjectsView: FC = () => {
             onChange={(e) => setSortKey(e.target.value as SortKey)}
             aria-label="Sort projects by"
             className={cn(
-              'appearance-none rounded-xl border border-border bg-background pl-8 pr-8 py-2 text-sm text-foreground cursor-pointer',
+              'appearance-none rounded-xl border border-border bg-background ps-8 pe-8 py-2 text-sm text-foreground cursor-pointer',
               'transition-colors duration-200',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background',
               'hover:border-primary/30',
@@ -229,7 +229,7 @@ const ProjectsView: FC = () => {
             ))}
           </select>
           <SlidersHorizontal
-            className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-muted-foreground"
+            className="pointer-events-none absolute end-3 h-3.5 w-3.5 text-muted-foreground"
             aria-hidden="true"
           />
         </div>

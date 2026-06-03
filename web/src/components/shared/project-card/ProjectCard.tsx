@@ -88,7 +88,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className, ...props }) => 
             <User className="h-3 w-3" aria-hidden="true" />
             {project.lead.name}
           </span>
-          <span className="flex items-center gap-1 ml-auto">
+          <span className="flex items-center gap-1 ms-auto">
             <RefreshCw className="h-3 w-3" aria-hidden="true" />
             {dayjs(project.lastSyncedAt).fromNow()}
           </span>
