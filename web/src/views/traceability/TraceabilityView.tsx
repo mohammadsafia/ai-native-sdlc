@@ -6,6 +6,7 @@ import { cn } from '@utils';
 import { useActiveProject } from '@contexts';
 import { useTraceability, useProjects } from '@hooks/queries';
 import { GitBranch, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // ─── Skeleton shown while traceability data is loading ────────────────────────
 
@@ -56,6 +57,7 @@ interface ProjectSelectorProps {
 
 function ProjectSelector({ activeId, setActiveId }: ProjectSelectorProps) {
   const { data: projects = [], isLoading } = useProjects();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return <Skeleton shape="rectangle" size="sm" className="w-48 h-9 rounded-xl" />;
@@ -66,15 +68,15 @@ function ProjectSelector({ activeId, setActiveId }: ProjectSelectorProps) {
   return (
     <Select value={activeId} onValueChange={setActiveId}>
       <Select.Trigger
-        aria-label="Select project"
+        aria-label={t('nav.projects')}
         className={cn(
           'h-9 min-w-48 max-w-72 rounded-xl border-border bg-surface px-3 py-2 text-sm',
           'text-foreground',
         )}
       >
         <GitBranch size={14} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-        <Select.Value placeholder="Select project">
-          {active?.name ?? 'Select project'}
+        <Select.Value placeholder={t('nav.projects')}>
+          {active?.name ?? t('nav.projects')}
         </Select.Value>
         <Select.Icon>
           <ChevronDown size={14} className="text-muted-foreground" />
@@ -100,6 +102,7 @@ function ProjectSelector({ activeId, setActiveId }: ProjectSelectorProps) {
 const TraceabilityView: FC = () => {
   const { activeId, setActiveId } = useActiveProject();
   const { data: nodes, isLoading } = useTraceability(activeId);
+  const { t } = useTranslation();
 
   const isEmpty = !isLoading && Array.isArray(nodes) && nodes.length === 0;
 
@@ -108,9 +111,9 @@ const TraceabilityView: FC = () => {
       {/* ── Page header ── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Traceability</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('traceability.title')}</h1>
           <span className="text-sm text-muted-foreground">
-            Requirement → Release map
+            {t('traceability.subtitle')}
           </span>
         </div>
 
@@ -124,8 +127,8 @@ const TraceabilityView: FC = () => {
             <TraceabilitySkeleton />
           ) : isEmpty ? (
             <EmptyState
-              title="No traceability data yet"
-              hint="This project is in early stages and has not yet accumulated enough linked work items to build a traceability map. Start linking requirements to epics and stories to populate this view."
+              title={t('traceability.noTrace')}
+              hint={t('traceability.noTraceHint')}
               className="py-20"
             />
           ) : (

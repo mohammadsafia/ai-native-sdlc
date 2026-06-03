@@ -3,6 +3,7 @@ import { type FC } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { FileText, CheckCircle2, Circle, Clock, AlertCircle, GitPullRequest } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@utils';
 import { useWeeklyReport, useProjects } from '@hooks/queries';
@@ -30,6 +31,7 @@ interface ProjectSelectorProps {
 
 function ProjectSelector({ activeId, onSelect }: ProjectSelectorProps) {
   const { data: projects = [], isLoading } = useProjects();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return <Skeleton shape="rectangle" size="xs" className="w-40 h-8" />;
@@ -39,7 +41,7 @@ function ProjectSelector({ activeId, onSelect }: ProjectSelectorProps) {
     <select
       value={activeId}
       onChange={(e) => onSelect(e.target.value)}
-      aria-label="Select project"
+      aria-label={t('report.project')}
       className={cn(
         'rounded-xl border border-border bg-surface px-3 py-1.5 text-sm text-foreground cursor-pointer',
         'transition-colors duration-200',
@@ -162,6 +164,7 @@ function SectionCard({ title, icon, children, className }: SectionCardProps) {
 const WeeklyReportView: FC = () => {
   const { activeId, setActiveId } = useActiveProject();
   const { data: report, isLoading } = useWeeklyReport(activeId);
+  const { t } = useTranslation();
 
   // ── States ──────────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -188,13 +191,13 @@ const WeeklyReportView: FC = () => {
         <div className="max-w-3xl mx-auto">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">Weekly Report</h1>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('report.title')}</h1>
             </div>
             <ProjectSelector activeId={activeId} onSelect={setActiveId} />
           </div>
           <EmptyState
-            title="No report available"
-            hint="This project doesn't have enough data yet to generate a weekly report. Check back after the sprint progresses."
+            title={t('report.noReport')}
+            hint={t('report.noReportHint')}
           />
         </div>
       </div>
@@ -214,8 +217,8 @@ const WeeklyReportView: FC = () => {
     dataCompleteness,
   } = report;
 
-  const completenessLabel = `${Math.round(dataCompleteness)}% data completeness`;
-  const generatedLabel = `Generated ${dayjs(generatedAt).fromNow()}`;
+  const completenessLabel = `${Math.round(dataCompleteness)}% ${t('report.dataCompleteness').toLowerCase()}`;
+  const generatedLabel = `${t('report.generatedAt')} ${dayjs(generatedAt).fromNow()}`;
   const velocityPct =
     summary.pointsCommitted > 0
       ? Math.round((summary.pointsCompleted / summary.pointsCommitted) * 100)
@@ -228,13 +231,13 @@ const WeeklyReportView: FC = () => {
         {/* ── Page header ── */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">Weekly Report</h1>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('report.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Week ending {dayjs(periodEnd).format('MMM D, YYYY')}
+              {t('report.weekEnding')} {dayjs(periodEnd).format('MMM D, YYYY')}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground hidden sm:inline">Project</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">{t('report.project')}</span>
             <ProjectSelector activeId={activeId} onSelect={setActiveId} />
           </div>
         </div>
@@ -251,31 +254,31 @@ const WeeklyReportView: FC = () => {
               <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 md:grid-cols-6">
                 <MetricStat
                   value={summary.done}
-                  label="Done"
+                  label={t('report.done')}
                   tone={summary.done > 0 ? 'success' : 'default'}
                 />
                 <MetricStat
                   value={summary.inProgress}
-                  label="In progress"
+                  label={t('report.inProgressShort')}
                 />
                 <MetricStat
                   value={summary.todo}
-                  label="To do"
+                  label={t('report.toDo')}
                   tone="muted"
                 />
                 <MetricStat
                   value={summary.blocked}
-                  label="Blocked"
+                  label={t('report.blocked')}
                   tone={summary.blocked > 0 ? 'destructive' : 'default'}
                 />
                 <MetricStat
                   value={summary.pointsCompleted}
-                  label="Points done"
+                  label={t('report.pointsDone')}
                   tone={velocityPct >= 75 ? 'success' : velocityPct >= 50 ? 'warning' : 'destructive'}
                 />
                 <MetricStat
                   value={summary.pointsCommitted}
-                  label="Points committed"
+                  label={t('report.pointsCommitted')}
                   tone="muted"
                 />
               </div>
@@ -284,11 +287,11 @@ const WeeklyReportView: FC = () => {
 
           {/* ── Completed ── */}
           <SectionCard
-            title="Completed"
+            title={t('report.completed')}
             icon={<CheckCircle2 size={16} />}
           >
             {completed.length === 0 ? (
-              <EmptyState title="No completed items this week" className="border-none py-6" />
+              <EmptyState title={t('report.noCompletedItems')} className="border-none py-6" />
             ) : (
               <div>
                 {completed.map((item) => (
@@ -300,11 +303,11 @@ const WeeklyReportView: FC = () => {
 
           {/* ── In progress ── */}
           <SectionCard
-            title="In progress"
+            title={t('report.inProgress')}
             icon={<Circle size={16} />}
           >
             {inProgress.length === 0 ? (
-              <EmptyState title="Nothing in progress" className="border-none py-6" />
+              <EmptyState title={t('report.nothingInProgress')} className="border-none py-6" />
             ) : (
               <div>
                 {inProgress.map((item) => (
@@ -316,11 +319,11 @@ const WeeklyReportView: FC = () => {
 
           {/* ── Stale stories ── */}
           <SectionCard
-            title="Stale stories"
+            title={t('report.staleStories')}
             icon={<Clock size={16} />}
           >
             {staleStories.length === 0 ? (
-              <EmptyState title="No stale stories" hint="All in-progress items have recent activity." className="border-none py-6" />
+              <EmptyState title={t('report.noStaleStories')} hint={t('report.noStaleStoriesHint')} className="border-none py-6" />
             ) : (
               <div>
                 {staleStories.map((item) => (
@@ -332,11 +335,11 @@ const WeeklyReportView: FC = () => {
 
           {/* ── Idle PRs ── */}
           <SectionCard
-            title="Idle PRs"
+            title={t('report.idlePRs')}
             icon={<GitPullRequest size={16} />}
           >
             {idlePrs.length === 0 ? (
-              <EmptyState title="No idle pull requests" hint="All open PRs have been reviewed recently." className="border-none py-6" />
+              <EmptyState title={t('report.noIdlePRs')} hint={t('report.noIdlePRsHint')} className="border-none py-6" />
             ) : (
               <div>
                 {idlePrs.map((pr) => (
@@ -346,7 +349,7 @@ const WeeklyReportView: FC = () => {
                   >
                     <EvidenceChip label={pr.id} />
                     <span className="flex-1 text-sm text-muted-foreground tabular-nums">
-                      {pr.daysIdle}d idle
+                      {t('report.daysIdleShort', { days: pr.daysIdle })}
                     </span>
                   </div>
                 ))}
@@ -356,11 +359,11 @@ const WeeklyReportView: FC = () => {
 
           {/* ── Risks ── */}
           <SectionCard
-            title="Risks"
+            title={t('report.risks')}
             icon={<AlertCircle size={16} />}
           >
             {risks.length === 0 ? (
-              <EmptyState title="No risks identified" hint="No open risks detected for this sprint." className="border-none py-6" />
+              <EmptyState title={t('report.noRisksIdentified')} hint={t('report.noRisksIdentifiedHint')} className="border-none py-6" />
             ) : (
               <div>
                 {risks.map((risk) => (
@@ -376,7 +379,7 @@ const WeeklyReportView: FC = () => {
               {completenessLabel} · {generatedLabel}
             </p>
             <p className="text-xs text-muted-foreground/50">
-              AI-generated summary — verify critical items against your project tracker.
+              {t('report.aiDisclaimer')}
             </p>
           </footer>
 
