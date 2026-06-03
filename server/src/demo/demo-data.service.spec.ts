@@ -178,4 +178,52 @@ describe('DemoDataService', () => {
       }
     });
   });
+
+  // -------------------------------------------------------------------------
+  describe('sprint velocity history (forecast basis)', () => {
+    it('each project has at least 3 closed sprints for forecast basis', () => {
+      for (const key of ['FALCON', 'ORION', 'ATLAS']) {
+        const closed = service.getSprints(key).filter((s) => s.state === 'closed');
+        expect(closed.length).toBeGreaterThanOrEqual(3);
+      }
+    });
+
+    it('each project has exactly one active sprint', () => {
+      for (const key of ['FALCON', 'ORION', 'ATLAS']) {
+        const active = service.getSprints(key).filter((s) => s.state === 'active');
+        expect(active.length).toBe(1);
+      }
+    });
+
+    it('all sprints have completedPoints and committedPoints', () => {
+      for (const key of ['FALCON', 'ORION', 'ATLAS']) {
+        for (const sprint of service.getSprints(key)) {
+          expect(typeof sprint.completedPoints).toBe('number');
+          expect(typeof sprint.committedPoints).toBe('number');
+        }
+      }
+    });
+
+    it('ORION closed sprints have high completion rate (steady velocity)', () => {
+      const closed = service.getSprints('ORION').filter((s) => s.state === 'closed');
+      for (const s of closed) {
+        const ratio = s.completedPoints / s.committedPoints;
+        expect(ratio).toBeGreaterThan(0.9);
+      }
+    });
+
+    it('FALCON has declining velocity across closed sprints', () => {
+      const closed = service.getSprints('FALCON')
+        .filter((s) => s.state === 'closed')
+        .sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
+      // First sprint should have higher completedPoints than last
+      expect(closed[0].completedPoints).toBeGreaterThan(closed[closed.length - 1].completedPoints);
+    });
+
+    it('ATLAS has erratic velocity (at least one low-completion sprint)', () => {
+      const closed = service.getSprints('ATLAS').filter((s) => s.state === 'closed');
+      const hasLowCompletion = closed.some((s) => s.completedPoints / s.committedPoints < 0.5);
+      expect(hasLowCompletion).toBe(true);
+    });
+  });
 });

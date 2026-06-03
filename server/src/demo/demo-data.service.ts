@@ -72,6 +72,8 @@ export interface DemoSprint {
   state: string;
   startDate: Date;
   endDate: Date;
+  committedPoints: number;
+  completedPoints: number;
 }
 
 export interface DemoProject {
@@ -156,17 +158,52 @@ export class DemoDataService implements OnModuleInit {
       lastSyncedAt: new Date('2026-06-04T00:00:00.000Z'),
     });
 
-    // Sprint: started 2026-05-21 (matches fixture sprintStartDate)
+    // Sprint history: 3 closed + 1 active. FALCON has declining velocity → lower confidence.
     const sprintStartDate = new Date('2026-05-21T00:00:00.000Z');
-    const sprint: DemoSprint = {
-      id: 'demo-sprint-falcon',
-      projectId,
-      name: 'Sprint 1',
-      state: 'active',
-      startDate: sprintStartDate,
-      endDate: new Date('2026-06-04T00:00:00.000Z'),
-    };
-    this.sprints.set(KEY, [sprint]);
+    const falconSprints: DemoSprint[] = [
+      {
+        id: 'demo-sprint-falcon-s1',
+        projectId,
+        name: 'Sprint 1',
+        state: 'closed',
+        startDate: new Date('2026-03-26T00:00:00.000Z'),
+        endDate: new Date('2026-04-09T00:00:00.000Z'),
+        committedPoints: 42,
+        completedPoints: 40, // strong start
+      },
+      {
+        id: 'demo-sprint-falcon-s2',
+        projectId,
+        name: 'Sprint 2',
+        state: 'closed',
+        startDate: new Date('2026-04-09T00:00:00.000Z'),
+        endDate: new Date('2026-04-23T00:00:00.000Z'),
+        committedPoints: 38,
+        completedPoints: 32, // declining
+      },
+      {
+        id: 'demo-sprint-falcon-s3',
+        projectId,
+        name: 'Sprint 3',
+        state: 'closed',
+        startDate: new Date('2026-04-23T00:00:00.000Z'),
+        endDate: new Date('2026-05-07T00:00:00.000Z'),
+        committedPoints: 36,
+        completedPoints: 24, // further decline
+      },
+      {
+        id: 'demo-sprint-falcon-s4',
+        projectId,
+        name: 'Sprint 4',
+        state: 'active',
+        startDate: sprintStartDate,
+        endDate: new Date('2026-06-04T00:00:00.000Z'),
+        committedPoints: 34,
+        completedPoints: 14, // mid-sprint, partial
+      },
+    ];
+    const sprint = falconSprints[falconSprints.length - 1]; // active sprint for artifact mapping
+    this.sprints.set(KEY, falconSprints);
 
     // Load all Jira issues from fixture (page1 + page2)
     const jiraFixture = loadFixture<{
@@ -280,15 +317,51 @@ export class DemoDataService implements OnModuleInit {
       lastSyncedAt: NOW,
     });
 
-    const sprint: DemoSprint = {
-      id: 'demo-sprint-orion',
-      projectId,
-      name: 'Sprint 3',
-      state: 'active',
-      startDate: new Date('2026-05-28T00:00:00.000Z'),
-      endDate: new Date('2026-06-11T00:00:00.000Z'),
-    };
-    this.sprints.set(KEY, [sprint]);
+    // Sprint history: 3 closed + 1 active. ORION is steady/healthy → high confidence.
+    const orionSprints: DemoSprint[] = [
+      {
+        id: 'demo-sprint-orion-s1',
+        projectId,
+        name: 'Sprint 1',
+        state: 'closed',
+        startDate: new Date('2026-04-02T00:00:00.000Z'),
+        endDate: new Date('2026-04-16T00:00:00.000Z'),
+        committedPoints: 28,
+        completedPoints: 27,
+      },
+      {
+        id: 'demo-sprint-orion-s2',
+        projectId,
+        name: 'Sprint 2',
+        state: 'closed',
+        startDate: new Date('2026-04-16T00:00:00.000Z'),
+        endDate: new Date('2026-04-30T00:00:00.000Z'),
+        committedPoints: 26,
+        completedPoints: 25,
+      },
+      {
+        id: 'demo-sprint-orion-s3',
+        projectId,
+        name: 'Sprint 3',
+        state: 'closed',
+        startDate: new Date('2026-04-30T00:00:00.000Z'),
+        endDate: new Date('2026-05-14T00:00:00.000Z'),
+        committedPoints: 28,
+        completedPoints: 28,
+      },
+      {
+        id: 'demo-sprint-orion-s4',
+        projectId,
+        name: 'Sprint 4',
+        state: 'active',
+        startDate: new Date('2026-05-28T00:00:00.000Z'),
+        endDate: new Date('2026-06-11T00:00:00.000Z'),
+        committedPoints: 23,
+        completedPoints: 16, // mid-sprint
+      },
+    ];
+    const sprint = orionSprints[orionSprints.length - 1]; // active sprint
+    this.sprints.set(KEY, orionSprints);
 
     const arts: DemoArtifact[] = [
       this.makeArt('ORION-1', projectId, sprint.id, 'story', 'Done', 'done', 'Alice Chen', 8, NOW, false, 'Implement user auth module'),
@@ -365,15 +438,51 @@ export class DemoDataService implements OnModuleInit {
       lastSyncedAt: NOW,
     });
 
-    const sprint: DemoSprint = {
-      id: 'demo-sprint-atlas',
-      projectId,
-      name: 'Sprint 2',
-      state: 'active',
-      startDate: new Date('2026-05-21T00:00:00.000Z'),
-      endDate: new Date('2026-06-04T00:00:00.000Z'),
-    };
-    this.sprints.set(KEY, [sprint]);
+    // Sprint history: 3 closed + 1 active. ATLAS is erratic → low confidence.
+    const atlasSprints: DemoSprint[] = [
+      {
+        id: 'demo-sprint-atlas-s1',
+        projectId,
+        name: 'Sprint 1',
+        state: 'closed',
+        startDate: new Date('2026-03-26T00:00:00.000Z'),
+        endDate: new Date('2026-04-09T00:00:00.000Z'),
+        committedPoints: 30,
+        completedPoints: 28,
+      },
+      {
+        id: 'demo-sprint-atlas-s2',
+        projectId,
+        name: 'Sprint 2',
+        state: 'closed',
+        startDate: new Date('2026-04-09T00:00:00.000Z'),
+        endDate: new Date('2026-04-23T00:00:00.000Z'),
+        committedPoints: 30,
+        completedPoints: 10, // big drop (blocker)
+      },
+      {
+        id: 'demo-sprint-atlas-s3',
+        projectId,
+        name: 'Sprint 3',
+        state: 'closed',
+        startDate: new Date('2026-04-23T00:00:00.000Z'),
+        endDate: new Date('2026-05-07T00:00:00.000Z'),
+        committedPoints: 25,
+        completedPoints: 22, // recovered
+      },
+      {
+        id: 'demo-sprint-atlas-s4',
+        projectId,
+        name: 'Sprint 4',
+        state: 'active',
+        startDate: new Date('2026-05-21T00:00:00.000Z'),
+        endDate: new Date('2026-06-04T00:00:00.000Z'),
+        committedPoints: 18,
+        completedPoints: 3, // blocked mid-sprint
+      },
+    ];
+    const sprint = atlasSprints[atlasSprints.length - 1]; // active sprint
+    this.sprints.set(KEY, atlasSprints);
 
     const arts: DemoArtifact[] = [
       // Blocked artifact
