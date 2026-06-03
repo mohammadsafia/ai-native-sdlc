@@ -2,7 +2,6 @@ import { type ComponentPropsWithoutRef, type FC } from 'react';
 
 import { cn } from '@utils';
 import type { SubScores } from '@app-types';
-import Card from '@components/ui/card/Card';
 
 export interface HealthRingProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   score: number;

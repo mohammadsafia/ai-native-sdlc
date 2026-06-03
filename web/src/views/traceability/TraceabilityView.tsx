@@ -1,15 +1,11 @@
 import { type FC } from 'react';
 
-import { GitBranch, ChevronDown } from 'lucide-react';
-
+import { Card, Skeleton, Select } from '@components/ui';
+import { TraceabilityGraph, EmptyState } from '@components/shared';
 import { cn } from '@utils';
 import { useActiveProject } from '@contexts';
 import { useTraceability, useProjects } from '@hooks/queries';
-import Card from '@components/ui/card/Card';
-import Skeleton from '@components/ui/skeleton/Skeleton';
-import Select from '@components/ui/select/Select';
-import TraceabilityGraph from '@components/shared/traceability-graph/TraceabilityGraph';
-import EmptyState from '@components/shared/empty-state/EmptyState';
+import { GitBranch, ChevronDown } from 'lucide-react';
 
 // ─── Skeleton shown while traceability data is loading ────────────────────────
 

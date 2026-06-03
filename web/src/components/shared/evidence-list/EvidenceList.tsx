@@ -1,7 +1,7 @@
 import { type ComponentPropsWithoutRef, type FC } from 'react';
 
+import { EvidenceChip } from '@components/shared';
 import { cn } from '@utils';
-import EvidenceChip from '@components/shared/evidence-chip/EvidenceChip';
 
 export interface EvidenceListProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   items: string[];

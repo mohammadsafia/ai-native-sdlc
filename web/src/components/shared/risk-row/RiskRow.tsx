@@ -1,9 +1,8 @@
 import { type ComponentPropsWithoutRef, type FC } from 'react';
 
+import { SeverityBadge, EvidenceChip } from '@components/shared';
 import { cn } from '@utils';
 import type { Risk, Severity } from '@app-types';
-import SeverityBadge from '@components/shared/severity-badge/SeverityBadge';
-import EvidenceChip from '@components/shared/evidence-chip/EvidenceChip';
 
 export interface RiskRowProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   risk: Risk;

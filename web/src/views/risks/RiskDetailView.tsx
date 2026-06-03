@@ -1,16 +1,12 @@
 import { type FC } from 'react';
 
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldAlert, AlertTriangle, Info, Lightbulb, FileText } from 'lucide-react';
 
+import { Card, Skeleton } from '@components/ui';
+import { SeverityBadge, EvidenceChip, EvidenceList, EmptyState } from '@components/shared';
 import { cn } from '@utils';
 import { useRisk } from '@hooks/queries';
-import Card from '@components/ui/card/Card';
-import Skeleton from '@components/ui/skeleton/Skeleton';
-import SeverityBadge from '@components/shared/severity-badge/SeverityBadge';
-import EvidenceChip from '@components/shared/evidence-chip/EvidenceChip';
-import EvidenceList from '@components/shared/evidence-list/EvidenceList';
-import EmptyState from '@components/shared/empty-state/EmptyState';
+import { ArrowLeft, ShieldAlert, AlertTriangle, Info, Lightbulb, FileText } from 'lucide-react';
 import type { RiskKind } from '@app-types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

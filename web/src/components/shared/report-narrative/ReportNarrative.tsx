@@ -1,11 +1,12 @@
 import { type ComponentPropsWithoutRef, type FC, Fragment } from 'react';
 
-import { cn } from '@utils';
-import type { WeeklyReport } from '@app-types';
-import Card from '@components/ui/card/Card';
-import EvidenceChip from '@components/shared/evidence-chip/EvidenceChip';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+
+import { Card } from '@components/ui';
+import { EvidenceChip } from '@components/shared';
+import { cn } from '@utils';
+import type { WeeklyReport } from '@app-types';
 
 dayjs.extend(relativeTime);
 

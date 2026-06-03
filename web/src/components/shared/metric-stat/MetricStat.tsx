@@ -3,7 +3,6 @@ import { type ComponentPropsWithoutRef, type FC } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@utils';
-import Card from '@components/ui/card/Card';
 
 export const metricStatValueVariants = cva('text-3xl font-bold leading-none', {
   variants: {

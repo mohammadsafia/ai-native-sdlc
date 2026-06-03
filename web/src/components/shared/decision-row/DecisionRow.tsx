@@ -1,9 +1,10 @@
 import { type ComponentPropsWithoutRef, type FC } from 'react';
 
-import { cn } from '@utils';
-import type { Decision } from '@app-types';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+
+import { cn } from '@utils';
+import type { Decision } from '@app-types';
 
 dayjs.extend(relativeTime);
 

@@ -1,13 +1,10 @@
 import { type FC, useState, useMemo } from 'react';
 
-import { Search, SlidersHorizontal, ArrowUpDown, Layers } from 'lucide-react';
-
+import { Skeleton } from '@components/ui';
+import { ProjectCard, EmptyState } from '@components/shared';
 import { cn } from '@utils';
 import { useProjects } from '@hooks/queries';
-import ProjectCard from '@components/shared/project-card/ProjectCard';
-import EmptyState from '@components/shared/empty-state/EmptyState';
-import PrimeLoader from '@components/shared/prime-loader/PrimeLoader';
-import Skeleton from '@components/ui/skeleton/Skeleton';
+import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import type { Project, ProjectStatus } from '@app-types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

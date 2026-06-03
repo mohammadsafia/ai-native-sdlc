@@ -1,23 +1,23 @@
 import { type FC } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-import { Download, Sparkles, ChevronRight } from 'lucide-react';
 
+import { Card, Button, Skeleton } from '@components/ui';
+import {
+  PrimeLoader,
+  HealthBadge,
+  HealthRing,
+  MetricStat,
+  ReportNarrative,
+  RiskRow,
+  DecisionRow,
+  TimelineForecastBar,
+  EmptyState,
+} from '@components/shared';
 import { cn } from '@utils';
-import { useProject } from '@hooks/queries';
-import Card from '@components/ui/card/Card';
-import Button from '@components/ui/button/Button';
-import Skeleton from '@components/ui/skeleton/Skeleton';
-import PrimeLoader from '@components/shared/prime-loader/PrimeLoader';
-import HealthBadge from '@components/shared/health-badge/HealthBadge';
-import HealthRing from '@components/shared/health-ring/HealthRing';
-import MetricStat from '@components/shared/metric-stat/MetricStat';
-import ReportNarrative from '@components/shared/report-narrative/ReportNarrative';
-import RiskRow from '@components/shared/risk-row/RiskRow';
-import DecisionRow from '@components/shared/decision-row/DecisionRow';
-import TimelineForecastBar from '@components/shared/timeline-forecast-bar/TimelineForecastBar';
-import EmptyState from '@components/shared/empty-state/EmptyState';
 import { FULL_ROUTES_PATH } from '@routes';
+import { useProject } from '@hooks/queries';
+import { Download, Sparkles, ChevronRight } from 'lucide-react';
 
 // ─── Loading skeleton ──────────────────────────────────────────────────────────
 

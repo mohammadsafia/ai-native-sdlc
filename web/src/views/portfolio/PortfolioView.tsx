@@ -1,7 +1,7 @@
 import { type FC } from 'react';
 
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ArrowRight } from 'lucide-react';
 
 import { cn } from '@utils';
 import { usePortfolio } from '@hooks/queries';

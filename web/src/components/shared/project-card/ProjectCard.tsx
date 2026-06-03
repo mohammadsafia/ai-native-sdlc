@@ -1,14 +1,14 @@
 import { type ComponentPropsWithoutRef, type FC } from 'react';
 
 import { Link } from 'react-router-dom';
-import { AlertTriangle, User, RefreshCw } from 'lucide-react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
+import { Card } from '@components/ui';
+import { HealthBadge } from '@components/shared';
 import { cn } from '@utils';
 import type { Project } from '@app-types';
-import Card from '@components/ui/card/Card';
-import HealthBadge from '@components/shared/health-badge/HealthBadge';
+import { AlertTriangle, User, RefreshCw } from 'lucide-react';
 
 dayjs.extend(relativeTime);
 
