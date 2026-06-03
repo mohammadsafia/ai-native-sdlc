@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "portfolio": "المحفظة",
+    "projects": "المشاريع",
+    "traceability": "إمكانية التتبع",
+    "risks": "المخاطر",
+    "reports": "التقارير",
+    "settings": "الإعدادات"
+  },
+  "common": {
+    "search": "بحث…",
+    "export": "تصدير",
+    "generateReport": "إنشاء تقرير",
+    "lastSynced": "آخر مزامنة",
+    "aiGenerated": "مُولَّد بالذكاء الاصطناعي",
+    "viewAll": "عرض الكل",
+    "loading": "جارٍ التحميل…",
+    "noData": "لا توجد بيانات",
+    "backToProjects": "العودة إلى المشاريع"
+  },
+  "hub": {
+    "title": "مركز المشروع",
+    "healthScore": "درجة الصحة",
+    "openRisks": "المخاطر المفتوحة",
+    "blockers": "العوائق",
+    "topRisks": "أبرز المخاطر",
+    "keyDecisions": "القرارات الرئيسية",
+    "forecast": "توقعات الجدول الزمني",
+    "weeklyReport": "التقرير الأسبوعي"
+  },
+  "projects": {
+    "title": "المشاريع",
+    "allProjects": "جميع المشاريع",
+    "status": {
+      "healthy": "صحي",
+      "atRisk": "في خطر",
+      "blocked": "محجوب"
+    },
+    "filters": {
+      "all": "الكل",
+      "healthy": "صحي",
+      "atRisk": "في خطر",
+      "blocked": "محجوب"
+    },
+    "lead": "القائد",
+    "sprint": "السبرينت"
+  },
+  "portfolio": {
+    "title": "المحفظة",
+    "executiveSummary": "الملخص التنفيذي",
+    "healthOverview": "نظرة عامة على الصحة",
+    "risksByKind": "المخاطر حسب النوع",
+    "throughput": "الإنتاجية",
+    "atRiskProjects": "المشاريع المعرضة للخطر"
+  },
+  "risks": {
+    "title": "المخاطر",
+    "severity": "الخطورة",
+    "kind": "النوع",
+    "project": "المشروع",
+    "recommendation": "التوصية",
+    "evidence": "الدليل",
+    "allRisks": "جميع المخاطر",
+    "kinds": {
+      "delivery": "التسليم",
+      "scope_creep": "توسع النطاق",
+      "dependency": "التبعية",
+      "resource_overload": "زيادة التحميل"
+    }
+  },
+  "report": {
+    "title": "التقرير الأسبوعي",
+    "period": "الفترة",
+    "generatedAt": "تاريخ الإنشاء",
+    "dataCompleteness": "اكتمال البيانات",
+    "summary": "الملخص",
+    "completed": "مكتمل",
+    "inProgress": "قيد التنفيذ",
+    "staleStories": "القصص المتوقفة",
+    "idlePRs": "طلبات السحب الخاملة",
+    "groundedIn": "مستند إلى {{issues}} قضية · {{commits}} التزام",
+    "daysIdle": "{{days}} أيام خاملة",
+    "pointsCompleted": "النقاط المكتملة",
+    "pointsCommitted": "النقاط الملتزم بها"
+  },
+  "traceability": {
+    "title": "إمكانية التتبع",
+    "coverage": "التغطية",
+    "orphanNodes": "العقد اليتيمة",
+    "lanes": {
+      "requirement": "متطلب",
+      "epic": "ملحمة",
+      "story": "قصة",
+      "task": "مهمة",
+      "pr": "طلب سحب",
+      "deployment": "نشر",
+      "release": "إصدار"
+    },
+    "noTrace": "لا تتوفر بيانات تتبع"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "portfolio": "Portfolio",
+    "projects": "Projects",
+    "traceability": "Traceability",
+    "risks": "Risks",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "common": {
+    "search": "Search…",
+    "export": "Export",
+    "generateReport": "Generate report",
+    "lastSynced": "Last synced",
+    "aiGenerated": "AI-generated",
+    "viewAll": "View all",
+    "loading": "Loading…",
+    "noData": "No data available",
+    "backToProjects": "Back to projects"
+  },
+  "hub": {
+    "title": "Project Hub",
+    "healthScore": "Health Score",
+    "openRisks": "Open Risks",
+    "blockers": "Blockers",
+    "topRisks": "Top Risks",
+    "keyDecisions": "Key Decisions",
+    "forecast": "Timeline Forecast",
+    "weeklyReport": "Weekly Report"
+  },
+  "projects": {
+    "title": "Projects",
+    "allProjects": "All Projects",
+    "status": {
+      "healthy": "Healthy",
+      "atRisk": "At Risk",
+      "blocked": "Blocked"
+    },
+    "filters": {
+      "all": "All",
+      "healthy": "Healthy",
+      "atRisk": "At Risk",
+      "blocked": "Blocked"
+    },
+    "lead": "Lead",
+    "sprint": "Sprint"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "executiveSummary": "Executive Summary",
+    "healthOverview": "Health Overview",
+    "risksByKind": "Risks by Kind",
+    "throughput": "Throughput",
+    "atRiskProjects": "At-Risk Projects"
+  },
+  "risks": {
+    "title": "Risks",
+    "severity": "Severity",
+    "kind": "Kind",
+    "project": "Project",
+    "recommendation": "Recommendation",
+    "evidence": "Evidence",
+    "allRisks": "All Risks",
+    "kinds": {
+      "delivery": "Delivery",
+      "scope_creep": "Scope Creep",
+      "dependency": "Dependency",
+      "resource_overload": "Resource Overload"
+    }
+  },
+  "report": {
+    "title": "Weekly Report",
+    "period": "Period",
+    "generatedAt": "Generated",
+    "dataCompleteness": "Data Completeness",
+    "summary": "Summary",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "staleStories": "Stale Stories",
+    "idlePRs": "Idle PRs",
+    "groundedIn": "Grounded in {{issues}} issues · {{commits}} commits",
+    "daysIdle": "{{days}} days idle",
+    "pointsCompleted": "Points Completed",
+    "pointsCommitted": "Points Committed"
+  },
+  "traceability": {
+    "title": "Traceability",
+    "coverage": "Coverage",
+    "orphanNodes": "Orphan Nodes",
+    "lanes": {
+      "requirement": "Requirement",
+      "epic": "Epic",
+      "story": "Story",
+      "task": "Task",
+      "pr": "PR",
+      "deployment": "Deployment",
+      "release": "Release"
+    },
+    "noTrace": "No traceability data available"
+  }
+}
