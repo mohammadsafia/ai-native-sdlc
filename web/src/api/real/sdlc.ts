@@ -132,3 +132,77 @@ export async function getWeeklyReport(key: string): Promise<WeeklyReport> {
   const { projectKey: _pk, ...report } = data;
   return report as WeeklyReport;
 }
+
+// ─── PaginatedResult helper ───────────────────────────────────────────────────
+
+import type { PaginatedResult } from '@app-types';
+
+/**
+ * Live implementation of the mock `listProjectsPaged` function.
+ * Fetches all projects from GET /api/projects, then applies the same
+ * client-side search, status filter, sort, and pagination as the mock.
+ */
+export async function listProjectsPagedReal(
+  rawParams: string,
+): Promise<PaginatedResult<Omit<Project, 'trace' | 'report'>>> {
+  // Parse query string
+  const params = new URLSearchParams(rawParams);
+  const page = Math.max(1, Number(params.get('page') ?? 1));
+  const pageSize = Math.max(1, Number(params.get('pageSize') ?? 10));
+  const search = (params.get('search') ?? '').toLowerCase();
+  const sortParam = params.get('sort') ?? '';
+  const statusFilter: string[] = params.getAll('status');
+
+  type ProjectRow = Omit<Project, 'trace' | 'report'>;
+
+  // Fetch all projects (list route doesn't include trace/report)
+  const all = await getProjects();
+  let projects: ProjectRow[] = all.map(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ({ trace: _t, report: _r, ...rest }) => rest as ProjectRow,
+  );
+
+  // Global search — name, key, lead.name
+  if (search) {
+    projects = projects.filter(
+      (proj) =>
+        proj.name.toLowerCase().includes(search) ||
+        proj.key.toLowerCase().includes(search) ||
+        proj.lead.name.toLowerCase().includes(search),
+    );
+  }
+
+  // Faceted status filter
+  if (statusFilter.length > 0) {
+    projects = projects.filter((proj) => statusFilter.includes(proj.status));
+  }
+
+  // Sorting: "field:asc" or "field:desc"
+  if (sortParam) {
+    const [field, dir] = sortParam.split(':');
+    const desc = dir === 'desc';
+    projects = [...projects].sort((a, b) => {
+      const aVal: string | number =
+        field === 'health.overall'
+          ? a.health.overall
+          : ((a[field as keyof ProjectRow] ?? '') as string | number);
+      const bVal: string | number =
+        field === 'health.overall'
+          ? b.health.overall
+          : ((b[field as keyof ProjectRow] ?? '') as string | number);
+      if (aVal < bVal) return desc ? 1 : -1;
+      if (aVal > bVal) return desc ? -1 : 1;
+      return 0;
+    });
+  }
+
+  const total = projects.length;
+  const totalPage = Math.max(1, Math.ceil(total / pageSize));
+  const start = (page - 1) * pageSize;
+  const data = projects.slice(start, start + pageSize);
+
+  return {
+    data,
+    pagination: { page, pageSize, total, totalPage },
+  };
+}

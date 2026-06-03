@@ -13,6 +13,8 @@ import { useDataTable } from '@hooks/utils';
 import { useDataTableQuery } from '@hooks/shared';
 
 import { api } from '@api/mock';
+import { listProjectsPagedReal } from '@api/real/sdlc';
+import { USE_MOCK } from '@api/dataSource';
 import type { Project, ProjectStatus, DataTableFilterMeta } from '@app-types';
 
 dayjs.extend(relativeTime);
@@ -160,7 +162,10 @@ const ProjectsTable: FC = () => {
   const { data, isLoading, tableUtils } = useDataTableQuery<ProjectRow>({
     queryKey: ['projects-paged'],
     queryFn: (params) =>
-      api.listProjectsPaged(params as string) as Promise<import('@hooks/shared').PaginatedDataTable<ProjectRow>>,
+      (USE_MOCK
+        ? api.listProjectsPaged(params as string)
+        : listProjectsPagedReal(params as string)
+      ) as Promise<import('@hooks/shared').PaginatedDataTable<ProjectRow>>,
     defaultPageSize: 10,
   });
 
