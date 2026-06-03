@@ -3,6 +3,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReportService } from './report.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DemoDataService } from '../demo/demo-data.service';
+
+// Minimal ConfigService mock: DEMO_MODE = false (Prisma path)
+const mockConfigService = { get: jest.fn().mockReturnValue(false) };
+
+// Minimal DemoDataService mock (not used in non-demo tests)
+const mockDemoDataService = {
+  getProject: jest.fn(),
+  getArtifacts: jest.fn().mockReturnValue([]),
+  getCommits: jest.fn().mockReturnValue([]),
+  getPullRequests: jest.fn().mockReturnValue([]),
+  getSprints: jest.fn().mockReturnValue([]),
+};
 
 // ---------------------------------------------------------------------------
 // Fixture helpers
@@ -119,6 +133,8 @@ describe('ReportService', () => {
       providers: [
         ReportService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: mockConfigService },
+        { provide: DemoDataService, useValue: mockDemoDataService },
       ],
     }).compile();
 
@@ -130,7 +146,12 @@ describe('ReportService', () => {
     it('throws NotFoundException when project does not exist', async () => {
       mockPrisma = buildMockPrisma({ project: null });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrisma },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -218,7 +239,12 @@ describe('ReportService', () => {
       );
       const mockPrismaOverload = buildMockPrisma({ artifacts: heavyLoad });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaOverload }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaOverload },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -234,7 +260,12 @@ describe('ReportService', () => {
       );
       const mockPrismaExact = buildMockPrisma({ artifacts: exactLoad });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaExact }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaExact },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -368,7 +399,12 @@ describe('ReportService', () => {
       // PROJ-10 is in_progress in FIXTURES; its linked commit is 5 days old → stale
       const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT, FRESH_COMMIT] });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaCB },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -381,7 +417,12 @@ describe('ReportService', () => {
       // PROJ-3 is in_progress in FIXTURES; its linked commit is 1 day old → not stale
       const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT, FRESH_COMMIT] });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaCB },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -393,7 +434,12 @@ describe('ReportService', () => {
     it('dataCompleteness is 1.0 when commits exist', async () => {
       const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT] });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaCB },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -407,7 +453,12 @@ describe('ReportService', () => {
         pullRequests: [IDLE_PR, FRESH_PR],
       });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaCB },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -423,7 +474,12 @@ describe('ReportService', () => {
         pullRequests: [FRESH_PR],
       });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaCB },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 
@@ -434,7 +490,12 @@ describe('ReportService', () => {
     it('narrative indicates commit-based staleness mode when commits exist', async () => {
       const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT, FRESH_COMMIT] });
       const mod = await Test.createTestingModule({
-        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+        providers: [
+          ReportService,
+          { provide: PrismaService, useValue: mockPrismaCB },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
+        ],
       }).compile();
       const svc = mod.get<ReportService>(ReportService);
 

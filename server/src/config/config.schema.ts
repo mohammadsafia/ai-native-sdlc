@@ -17,6 +17,13 @@ export const envSchema = z.object({
   BITBUCKET_USERNAME: z.string().optional().default(''),
   BITBUCKET_APP_PASSWORD: z.string().optional().default(''),
   BITBUCKET_REPOS: z.string().optional().default(''),
+  DEMO_MODE: z
+    .string()
+    .optional()
+    .default('false')
+    .transform((val) => val === 'true' || val === '1')
+    .pipe(z.boolean()),
+  ANTHROPIC_API_KEY: z.string().optional(),
   PORT: z
     .string()
     .optional()

@@ -1,7 +1,9 @@
 // server/src/projects/projects.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReportService } from '../report/report.service';
+import { DemoDataService } from '../demo/demo-data.service';
 import { ProjectSummaryDto, HealthScoreDto } from '../report/report.dto';
 
 export type HealthLabel = 'healthy' | 'at-risk' | 'blocked';
@@ -56,9 +58,23 @@ export class ProjectsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly reportService: ReportService,
+    private readonly configService: ConfigService,
+    private readonly demoDataService: DemoDataService,
   ) {}
 
   async findAll(): Promise<ProjectSummaryDto[]> {
+    const isDemoMode = this.configService.get<boolean>('DEMO_MODE') === true;
+
+    if (isDemoMode) {
+      const projects = this.demoDataService.getProjects();
+      const summaries: ProjectSummaryDto[] = [];
+      for (const project of projects) {
+        const summary = await this.buildSummary(project);
+        summaries.push(summary);
+      }
+      return summaries;
+    }
+
     const projects = await this.prisma.project.findMany({
       orderBy: { key: 'asc' },
     });
@@ -72,6 +88,16 @@ export class ProjectsService {
   }
 
   async findOne(key: string): Promise<ProjectSummaryDto> {
+    const isDemoMode = this.configService.get<boolean>('DEMO_MODE') === true;
+
+    if (isDemoMode) {
+      const project = this.demoDataService.getProject(key);
+      if (!project) {
+        throw new NotFoundException(`Project with key "${key}" not found`);
+      }
+      return this.buildSummary(project);
+    }
+
     const project = await this.prisma.project.findUnique({ where: { key } });
     if (!project) {
       throw new NotFoundException(`Project with key "${key}" not found`);

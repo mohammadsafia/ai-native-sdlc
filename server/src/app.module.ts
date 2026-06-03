@@ -8,6 +8,7 @@ import { NormalizationModule } from './normalization/normalization.module';
 import { ReportModule } from './report/report.module';
 import { ProjectsModule } from './projects/projects.module';
 import { BitbucketModule } from './bitbucket/bitbucket.module';
+import { DemoModule } from './demo/demo.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BitbucketModule } from './bitbucket/bitbucket.module';
     ReportModule,
     ProjectsModule,
     BitbucketModule,
+    DemoModule,
   ],
 })
 export class AppModule {}

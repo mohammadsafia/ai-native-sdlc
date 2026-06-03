@@ -5,6 +5,20 @@ import { ReportService } from '../report/report.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { WeeklyReportDto } from '../report/report.dto';
+import { ConfigService } from '@nestjs/config';
+import { DemoDataService } from '../demo/demo-data.service';
+
+// DEMO_MODE=false → Prisma path
+const mockConfigService = { get: jest.fn().mockReturnValue(false) };
+
+const mockDemoDataService = {
+  getProjects: jest.fn().mockReturnValue([]),
+  getProject: jest.fn().mockReturnValue(undefined),
+  getArtifacts: jest.fn().mockReturnValue([]),
+  getCommits: jest.fn().mockReturnValue([]),
+  getPullRequests: jest.fn().mockReturnValue([]),
+  getSprints: jest.fn().mockReturnValue([]),
+};
 
 // ---------------------------------------------------------------------------
 // Fixture helpers
@@ -123,6 +137,8 @@ describe('ProjectsService', () => {
         ProjectsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ReportService, useValue: mockReportService },
+        { provide: ConfigService, useValue: mockConfigService },
+        { provide: DemoDataService, useValue: mockDemoDataService },
       ],
     }).compile();
 
@@ -192,6 +208,8 @@ describe('ProjectsService', () => {
           ProjectsService,
           { provide: PrismaService, useValue: mockPrisma },
           { provide: ReportService, useValue: mockReportService },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
         ],
       }).compile();
       const svc = module.get<ProjectsService>(ProjectsService);
@@ -223,6 +241,8 @@ describe('ProjectsService', () => {
           ProjectsService,
           { provide: PrismaService, useValue: mockPrisma },
           { provide: ReportService, useValue: mockReportService },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: DemoDataService, useValue: mockDemoDataService },
         ],
       }).compile();
       const svc = module.get<ProjectsService>(ProjectsService);
