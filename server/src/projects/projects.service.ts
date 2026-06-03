@@ -5,24 +5,31 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ReportService } from '../report/report.service';
 import { DemoDataService } from '../demo/demo-data.service';
 import { ProjectSummaryDto, HealthScoreDto } from '../report/report.dto';
+import { computeForecast } from '../report/forecast';
 
 export type HealthLabel = 'healthy' | 'at-risk' | 'blocked';
 
+/** Clamp a number to [0, 100] and round to integer. */
+function clamp100(v: number): number {
+  return Math.round(Math.max(0, Math.min(100, v)));
+}
+
 /**
- * Derives a health label and 0–100 score from raw project signals.
+ * Derives a health label, 0–100 composite score, and four sub-scores from raw
+ * project signals.
  *
- * Signals (weighted):
- *  - blockedCount    (weight 30): any blocked item pulls toward "blocked"
- *  - highRiskCount   (weight 25): high-severity risks
- *  - staleCount      (weight 20): stale in-progress items
- *  - scopeCreepCount (weight 15): scope-creep artifacts
- *  - overload        (weight 10): resource-overload indicators
+ * Sub-score formulas (each clamped to [0,100], higher = healthier):
+ *  - velocity   = sprints.length ? round(avg(completed/committed)*100) : 70
+ *  - scope      = 100 - scopeCreepCount * 15
+ *  - timeline   = 100 - staleCount * 12
+ *  - techRisk   = 100 - (blockedCount*15 + idlePrCount*8 + highRiskCount*10)
  *
- * Score starts at 100 and is reduced by each signal.
- * Label:
- *   score >= 80 && no high risks && no blocked → healthy
- *   score >= 50 || any risks || any stale       → at-risk
- *   otherwise                                   → blocked
+ * overall = round(equal-weight avg of the four sub-scores).
+ *
+ * Label thresholds:
+ *  overall < 50 && (blocked or high-risk signals) → 'blocked'
+ *  overall < 75 OR any adverse signal              → 'at-risk'
+ *  otherwise                                       → 'healthy'
  */
 export function deriveHealth(signals: {
   blockedCount: number;
@@ -30,27 +37,46 @@ export function deriveHealth(signals: {
   staleCount: number;
   scopeCreepCount: number;
   resourceOverloadCount: number;
+  idlePrCount?: number;
+  velocityRatio?: number; // completed/committed (0–1+), undefined when no sprint data
 }): HealthScoreDto {
-  const { blockedCount, highRiskCount, staleCount, scopeCreepCount, resourceOverloadCount } = signals;
+  const {
+    blockedCount,
+    highRiskCount,
+    staleCount,
+    scopeCreepCount,
+    idlePrCount = 0,
+    velocityRatio,
+  } = signals;
 
-  let score = 100;
-  score -= Math.min(blockedCount * 15, 30);
-  score -= Math.min(highRiskCount * 12, 25);
-  score -= Math.min(staleCount * 8, 20);
-  score -= Math.min(scopeCreepCount * 5, 15);
-  score -= Math.min(resourceOverloadCount * 5, 10);
-  score = Math.max(0, score);
+  // Sub-scores (clamped to [0,100])
+  const velocity = clamp100(
+    velocityRatio !== undefined ? Math.round(velocityRatio * 100) : 70,
+  );
+  const scope = clamp100(100 - scopeCreepCount * 15);
+  const timeline = clamp100(100 - staleCount * 12);
+  const techRisk = clamp100(
+    100 - (blockedCount * 15 + idlePrCount * 8 + highRiskCount * 10),
+  );
+
+  const overall = Math.round((velocity + scope + timeline + techRisk) / 4);
 
   let label: HealthLabel;
-  if (blockedCount > 0 || highRiskCount > 0) {
-    label = score < 50 ? 'blocked' : 'at-risk';
-  } else if (staleCount > 0 || scopeCreepCount > 0 || resourceOverloadCount > 0) {
+  if (overall < 50 && (blockedCount > 0 || highRiskCount > 0)) {
+    label = 'blocked';
+  } else if (
+    overall < 75 ||
+    blockedCount > 0 ||
+    highRiskCount > 0 ||
+    staleCount > 0 ||
+    scopeCreepCount > 0
+  ) {
     label = 'at-risk';
   } else {
     label = 'healthy';
   }
 
-  return { overall: Math.round(score), label };
+  return { overall, label, subScores: { scope, timeline, velocity, techRisk } };
 }
 
 @Injectable()
@@ -118,7 +144,11 @@ export class ProjectsService {
       staleCount: 0,
       scopeCreepCount: 0,
       resourceOverloadCount: 0,
+      idlePrCount: 0,
+      velocityRatio: undefined as number | undefined,
     };
+
+    let remainingPoints = 0;
 
     try {
       const report = await this.reportService.compute(project.key);
@@ -127,12 +157,56 @@ export class ProjectsService {
       signals.highRiskCount = report.risks.filter((r) => r.severity === 'high').length;
       signals.scopeCreepCount = report.risks.filter((r) => r.kind === 'scope_creep').length;
       signals.resourceOverloadCount = report.risks.filter((r) => r.kind === 'resource_overload').length;
+      signals.idlePrCount = report.idlePrs.length;
+
+      // Velocity ratio from the active sprint (guard divide-by-zero)
+      if (report.summary.pointsCommitted > 0) {
+        signals.velocityRatio = report.summary.pointsCompleted / report.summary.pointsCommitted;
+      }
+
+      // Remaining points = todo + in-progress + blocked (not yet done)
+      remainingPoints =
+        report.summary.pointsCommitted - report.summary.pointsCompleted;
+      if (remainingPoints < 0) remainingPoints = 0;
     } catch {
       // No artifacts yet (e.g. project just created, no sync run) → healthy with zeroes
     }
 
     const health = deriveHealth(signals);
     const openRiskCount = signals.highRiskCount + signals.scopeCreepCount + signals.resourceOverloadCount;
+
+    // Build forecast from historical sprint velocity
+    const rawSprints = this.demoDataService.getSprints(project.key);
+
+    // For the Prisma path, fetch closed sprints from DB if DemoDataService returns empty
+    let sprintSamples = rawSprints
+      .filter((s) => s.state === 'closed' || s.state === 'active')
+      .map((s) => ({
+        name: s.name,
+        completedPoints: s.completedPoints,
+        startDate: s.startDate,
+        endDate: s.endDate,
+      }));
+
+    // For the Prisma path, also fetch sprints from DB
+    if (sprintSamples.length === 0) {
+      try {
+        const dbSprints = await this.prisma.sprint.findMany({
+          where: { projectId: project.id },
+          orderBy: { endDate: 'asc' },
+        });
+        sprintSamples = dbSprints.map((s) => ({
+          name: s.name,
+          completedPoints: s.completedPoints ?? 0,
+          startDate: s.startDate ?? undefined,
+          endDate: s.endDate ?? undefined,
+        }));
+      } catch {
+        // DB unavailable — proceed without sprint data
+      }
+    }
+
+    const forecast = computeForecast(sprintSamples, remainingPoints);
 
     return {
       id: project.id,
@@ -142,6 +216,7 @@ export class ProjectsService {
       health,
       lastSyncedAt: project.lastSyncedAt ? project.lastSyncedAt.toISOString() : null,
       openRiskCount,
+      forecast,
     };
   }
 }

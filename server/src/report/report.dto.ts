@@ -133,12 +133,46 @@ export class WeeklyReportDto {
   narrative: string;
 }
 
+export class SubScoresDto {
+  @ApiProperty({ example: 85, description: 'Scope health 0–100 (lower = more scope creep)' })
+  scope: number;
+
+  @ApiProperty({ example: 76, description: 'Timeline health 0–100 (lower = more stale stories)' })
+  timeline: number;
+
+  @ApiProperty({ example: 90, description: 'Velocity health 0–100 (ratio of completed/committed points)' })
+  velocity: number;
+
+  @ApiProperty({ example: 70, description: 'Technical risk health 0–100 (lower = more blockers/idle PRs/high risks)' })
+  techRisk: number;
+}
+
 export class HealthScoreDto {
-  @ApiProperty({ example: 72, description: 'Composite health score 0–100' })
+  @ApiProperty({ example: 72, description: 'Composite health score 0–100 (weighted avg of sub-scores)' })
   overall: number;
 
   @ApiProperty({ enum: ['healthy', 'at-risk', 'blocked'], example: 'at-risk' })
   label: 'healthy' | 'at-risk' | 'blocked';
+
+  @ApiProperty({ type: SubScoresDto })
+  subScores: SubScoresDto;
+}
+
+export class TimelineForecastDto {
+  @ApiProperty({ example: '2026-08-15', description: 'Expected completion date (ISO date, empty when no velocity data)' })
+  expected: string;
+
+  @ApiProperty({ example: '2026-07-25', description: 'Optimistic (fast velocity) completion date' })
+  low: string;
+
+  @ApiProperty({ example: '2026-09-05', description: 'Pessimistic (slow velocity) completion date' })
+  high: string;
+
+  @ApiProperty({ example: 0.82, description: 'Forecast confidence 0–1' })
+  confidence: number;
+
+  @ApiProperty({ example: ['Sprint 1', 'Sprint 2', 'Sprint 3'], description: 'Sprint names used as velocity basis' })
+  basisSprints: string[];
 }
 
 export class ProjectSummaryDto {
@@ -162,4 +196,7 @@ export class ProjectSummaryDto {
 
   @ApiProperty({ example: 2, description: 'Number of open (non-resolved) risks' })
   openRiskCount: number;
+
+  @ApiProperty({ type: TimelineForecastDto })
+  forecast: TimelineForecastDto;
 }

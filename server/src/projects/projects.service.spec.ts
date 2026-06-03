@@ -1,6 +1,7 @@
 // server/src/projects/projects.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProjectsService, deriveHealth } from './projects.service';
+import { computeForecast } from '../report/forecast';
 import { ReportService } from '../report/report.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
@@ -65,7 +66,15 @@ function makeReport(overrides: Partial<WeeklyReportDto> = {}): WeeklyReportDto {
 // ---------------------------------------------------------------------------
 describe('deriveHealth (pure)', () => {
   it('returns healthy label when all signals are zero', () => {
+    // With no velocity data, velocityRatio is undefined → velocity defaults to 70.
+    // overall = round((70+100+100+100)/4) = 93.
     const result = deriveHealth({ blockedCount: 0, highRiskCount: 0, staleCount: 0, scopeCreepCount: 0, resourceOverloadCount: 0 });
+    expect(result.label).toBe('healthy');
+    expect(result.overall).toBeGreaterThanOrEqual(75);
+  });
+
+  it('returns overall=100 when all signals zero and full velocity', () => {
+    const result = deriveHealth({ blockedCount: 0, highRiskCount: 0, staleCount: 0, scopeCreepCount: 0, resourceOverloadCount: 0, velocityRatio: 1.0 });
     expect(result.label).toBe('healthy');
     expect(result.overall).toBe(100);
   });
@@ -81,15 +90,20 @@ describe('deriveHealth (pure)', () => {
     expect(result.label).toBe('at-risk');
   });
 
-  it('returns blocked when score drops below 50 with multiple signals', () => {
+  it('returns blocked when overall drops below 50 with blockers and high risks', () => {
+    // velocity: no velocityRatio → 70; scope: 100-3*15=55; timeline: 100-5*12=40; techRisk: 100-2*15-2*10=60
+    // overall = round((70+55+40+60)/4) = round(56.25) = 56 → at-risk (>=50 with blocked signals)
+    // To get blocked we need overall < 50:
+    // velocity: 0 (velocityRatio=0); scope: 0 (7+ creep); timeline: 0 (9+ stale); techRisk: 0 (blocked+highRisk enough)
     const result = deriveHealth({
-      blockedCount: 2,     // -30
-      highRiskCount: 2,    // -24
-      staleCount: 3,       // -20
-      scopeCreepCount: 3,  // -15
-      resourceOverloadCount: 2, // -10
+      blockedCount: 5,          // techRisk = 100 - 5*15 - 5*10 = -25 → 0
+      highRiskCount: 5,
+      staleCount: 9,            // timeline = 100 - 9*12 = -8 → 0
+      scopeCreepCount: 7,       // scope = 100 - 7*15 = -5 → 0
+      resourceOverloadCount: 2,
+      velocityRatio: 0,         // velocity = 0
     });
-    // score = 100 - 30 - 24 - 20 - 15 - 10 = 1 → blocked
+    // overall = round((0+0+0+0)/4) = 0 → blocked (overall < 50 AND blocked > 0)
     expect(result.label).toBe('blocked');
     expect(result.overall).toBeGreaterThanOrEqual(0);
     expect(result.overall).toBeLessThan(50);
@@ -103,6 +117,108 @@ describe('deriveHealth (pure)', () => {
   it('returns at-risk when scope-creep exists but no blocked/high-risk', () => {
     const result = deriveHealth({ blockedCount: 0, highRiskCount: 0, staleCount: 0, scopeCreepCount: 1, resourceOverloadCount: 0 });
     expect(result.label).toBe('at-risk');
+  });
+
+  it('returns subScores with all four dimensions', () => {
+    const result = deriveHealth({ blockedCount: 0, highRiskCount: 0, staleCount: 0, scopeCreepCount: 0, resourceOverloadCount: 0, velocityRatio: 1.0 });
+    expect(result.subScores).toBeDefined();
+    expect(typeof result.subScores.scope).toBe('number');
+    expect(typeof result.subScores.timeline).toBe('number');
+    expect(typeof result.subScores.velocity).toBe('number');
+    expect(typeof result.subScores.techRisk).toBe('number');
+  });
+
+  it('overall equals round avg of the four sub-scores', () => {
+    const result = deriveHealth({ blockedCount: 1, highRiskCount: 0, staleCount: 2, scopeCreepCount: 1, resourceOverloadCount: 0, velocityRatio: 0.8, idlePrCount: 1 });
+    const { scope, timeline, velocity, techRisk } = result.subScores;
+    const expectedOverall = Math.round((scope + timeline + velocity + techRisk) / 4);
+    expect(result.overall).toBe(expectedOverall);
+  });
+
+  it('all sub-scores are clamped to [0, 100]', () => {
+    const result = deriveHealth({ blockedCount: 10, highRiskCount: 10, staleCount: 10, scopeCreepCount: 10, resourceOverloadCount: 10, velocityRatio: 0 });
+    for (const v of Object.values(result.subScores)) {
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(100);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Unit tests for computeForecast (pure function — no mocks needed)
+// ---------------------------------------------------------------------------
+describe('computeForecast (pure)', () => {
+  const FROZEN_NOW = new Date('2026-06-04T00:00:00.000Z');
+
+  function sprint(name: string, completedPoints: number, daysAgo: number): Parameters<typeof computeForecast>[0][0] {
+    const endDate = new Date(FROZEN_NOW.getTime() - daysAgo * 86_400_000);
+    const startDate = new Date(endDate.getTime() - 14 * 86_400_000);
+    return { name, completedPoints, startDate, endDate };
+  }
+
+  it('returns empty strings when no sprints provided', () => {
+    const result = computeForecast([], 50, FROZEN_NOW);
+    expect(result.expected).toBe('');
+    expect(result.low).toBe('');
+    expect(result.high).toBe('');
+    expect(result.confidence).toBe(0);
+    expect(result.basisSprints).toHaveLength(0);
+  });
+
+  it('returns empty strings when all sprints have zero velocity', () => {
+    const result = computeForecast([sprint('S1', 0, 14)], 50, FROZEN_NOW);
+    expect(result.expected).toBe('');
+  });
+
+  it('returns ordered low <= expected <= high dates', () => {
+    const sprints = [
+      sprint('S1', 30, 42),
+      sprint('S2', 20, 28),
+      sprint('S3', 25, 14),
+    ];
+    const result = computeForecast(sprints, 100, FROZEN_NOW);
+    expect(result.expected).not.toBe('');
+    expect(result.low <= result.expected).toBe(true);
+    expect(result.expected <= result.high).toBe(true);
+  });
+
+  it('confidence is in [0, 1]', () => {
+    const sprints = [sprint('S1', 30, 42), sprint('S2', 25, 28)];
+    const result = computeForecast(sprints, 50, FROZEN_NOW);
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+    expect(result.confidence).toBeLessThanOrEqual(1);
+  });
+
+  it('confidence is 0.5 with a single sprint sample', () => {
+    const result = computeForecast([sprint('S1', 25, 14)], 50, FROZEN_NOW);
+    expect(result.confidence).toBe(0.5);
+  });
+
+  it('basisSprints lists the sprint names used', () => {
+    const sprints = [sprint('Alpha', 20, 42), sprint('Beta', 22, 28)];
+    const result = computeForecast(sprints, 60, FROZEN_NOW);
+    expect(result.basisSprints).toContain('Alpha');
+    expect(result.basisSprints).toContain('Beta');
+  });
+
+  it('returns expected=low=high when all sprints have same velocity', () => {
+    const sprints = [sprint('S1', 20, 42), sprint('S2', 20, 28), sprint('S3', 20, 14)];
+    const result = computeForecast(sprints, 40, FROZEN_NOW);
+    expect(result.low).toBe(result.expected);
+    expect(result.high).toBe(result.expected);
+  });
+
+  it('uses only the last 4 sprints', () => {
+    const sprints = [
+      sprint('S1', 5, 70),   // oldest — excluded
+      sprint('S2', 20, 56),
+      sprint('S3', 22, 42),
+      sprint('S4', 21, 28),
+      sprint('S5', 23, 14),  // newest
+    ];
+    const result = computeForecast(sprints, 80, FROZEN_NOW);
+    expect(result.basisSprints).not.toContain('S1');
+    expect(result.basisSprints).toHaveLength(4);
   });
 });
 
