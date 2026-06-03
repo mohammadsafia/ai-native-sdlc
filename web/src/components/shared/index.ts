@@ -21,3 +21,20 @@ export * from './combobox';
 export * from './grid-card';
 export * from './field-section';
 export * from './composed-components';
+
+// SDLC shared components
+export * from './evidence-chip';
+export * from './health-badge';
+export * from './severity-badge';
+export * from './metric-stat';
+export * from './empty-state';
+export * from './decision-row';
+export * from './evidence-list';
+export * from './report-narrative';
+export * from './risk-row';
+export * from './health-ring';
+export * from './timeline-forecast-bar';
+export * from './project-card';
+export * from './health-heatmap';
+export * from './risk-rollup';
+export * from './traceability-graph';
