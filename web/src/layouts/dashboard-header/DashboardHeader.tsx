@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { Avatar, Button, DropdownMenu } from '@components/ui';
+import { Avatar, Button, DropdownMenu, ToggleGroup } from '@components/ui';
 import { Conditional } from '@components/utils';
 import { ThemeSwitcher } from '@components/shared';
 
@@ -24,32 +24,29 @@ function LanguageToggle() {
   ];
 
   return (
-    <div
-      role="radiogroup"
+    <ToggleGroup
+      type="single"
+      value={currentLang}
+      onValueChange={(v) => {
+        if (v) i18n.changeLanguage(v);
+      }}
       aria-label="Language"
       className="inline-flex items-center gap-0.5 rounded-lg bg-primary-15 p-0.5"
     >
-      {langs.map(({ value, label }) => {
-        const active = currentLang === value;
-        return (
-          <button
-            key={value}
-            role="radio"
-            aria-checked={active}
-            onClick={() => i18n.changeLanguage(value)}
-            className={cn(
-              'inline-flex items-center justify-center rounded-md px-2.5 py-1 text-xs font-semibold transition-all duration-200',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-              active
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {label}
-          </button>
-        );
-      })}
-    </div>
+      {langs.map(({ value, label }) => (
+        <ToggleGroup.Item
+          key={value}
+          value={value}
+          className={cn(
+            'inline-flex items-center justify-center rounded-md bg-transparent px-2.5 py-1 text-xs font-semibold transition-all duration-200',
+            'text-muted-foreground hover:text-foreground',
+            'data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm',
+          )}
+        >
+          {label}
+        </ToggleGroup.Item>
+      ))}
+    </ToggleGroup>
   );
 }
 
