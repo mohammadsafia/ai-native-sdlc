@@ -28,7 +28,7 @@ function DashboardSidebar() {
         <header className="flex h-14 shrink-0 items-center justify-between px-4 md:h-16">
           <div className={cn('flex items-center justify-center transition-all duration-300', collapse && 'md:w-full')}>
             <span className={cn('text-foreground text-sm font-bold transition-all duration-300', collapse && 'md:text-xs')}>
-              {collapse ? 'S' : 'Starter'}
+              {collapse ? 'P' : 'Pulse IQ'}
             </span>
           </div>
 
