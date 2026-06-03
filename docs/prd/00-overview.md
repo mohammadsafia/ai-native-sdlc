@@ -82,6 +82,7 @@ This PRD **preserves that principle for the early phases** — Phases 0–2 are 
 
 ```
 docs/prd/
+  EXECUTIVE-SUMMARY.md          one-page stakeholder summary (value · phasing · the ask)
   00-overview.md                ← you are here
   01-product-architecture.md    capability pillars · phased roadmap · success metrics · product risks
   02-technical-foundation.md    reference architecture · entity resolution · guardrails · security · build realism
@@ -90,6 +91,6 @@ docs/prd/
     _TEMPLATE.md                blank packet skeleton (copy to start a new packet)
     AWP-INTEL-014-…             exemplar A — read-only (Weekly Status & Risk Report)
     AWP-ORCH-021-…              exemplar B — active write-back (BRD → draft PR)
-    AWP-*                       Phase 0/1 packets, authored in full
-  99-backlog.md                 index of every planned packet, incl. later-phase stubs
+    AWP-*                       all 42 packets, authored in full (Phases 0–6)
+  99-backlog.md                 index of every packet by phase, with suggested build order
 ```
