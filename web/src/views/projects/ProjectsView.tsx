@@ -1,5 +1,6 @@
 import { type FC, useState, useMemo } from 'react';
 
+import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@components/ui';
 import { ProjectCard, EmptyState } from '@components/shared';
 import { cn, FOCUS_RING } from '@utils';
@@ -11,18 +12,6 @@ import type { Project, ProjectStatus } from '@app-types';
 
 type StatusFilter = 'all' | ProjectStatus;
 type SortKey = 'name' | 'health';
-
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'healthy', label: 'Healthy' },
-  { value: 'at-risk', label: 'At-risk' },
-  { value: 'blocked', label: 'Blocked' },
-];
-
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'health', label: 'Health' },
-];
 
 // ─── Skeleton grid shown while loading ────────────────────────────────────────
 
@@ -65,10 +54,19 @@ interface StatusSegmentProps {
 }
 
 function StatusSegment({ value, onChange, counts }: StatusSegmentProps) {
+  const { t } = useTranslation();
+
+  const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+    { value: 'all', label: t('projects.filters.all') },
+    { value: 'healthy', label: t('projects.filters.healthy') },
+    { value: 'at-risk', label: t('projects.filters.atRisk') },
+    { value: 'blocked', label: t('projects.filters.blocked') },
+  ];
+
   return (
     <div
       role="radiogroup"
-      aria-label="Filter by status"
+      aria-label={t('projects.filterByStatus')}
       className="inline-flex items-center gap-0.5 rounded-xl bg-primary-15 p-1"
     >
       {STATUS_OPTIONS.map((opt) => {
@@ -117,10 +115,16 @@ function StatusSegment({ value, onChange, counts }: StatusSegmentProps) {
 
 const ProjectsView: FC = () => {
   const { data: projects = [], isLoading } = useProjects();
+  const { t } = useTranslation();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('name');
+
+  const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+    { value: 'name', label: t('projects.sortByName') },
+    { value: 'health', label: t('projects.sortByHealth') },
+  ];
 
   // Build count map for the segmented control badges
   const counts = useMemo<Record<StatusFilter, number>>(() => {
@@ -168,10 +172,10 @@ const ProjectsView: FC = () => {
     <div className="flex flex-col gap-6">
       {/* ── Page header ── */}
       <div className="flex items-baseline gap-3">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Projects</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('projects.title')}</h1>
         {!isLoading && (
           <span className="text-sm text-muted-foreground tabular-nums">
-            {projects.length} total
+            {projects.length} {t('projects.total')}
           </span>
         )}
       </div>
@@ -194,8 +198,8 @@ const ProjectsView: FC = () => {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or key…"
-            aria-label="Search projects"
+            placeholder={t('projects.searchPlaceholder')}
+            aria-label={t('projects.searchLabel')}
             className={cn(
               'w-full sm:w-56 rounded-xl border border-border bg-background ps-8 pe-3 py-2 text-sm text-foreground',
               'placeholder:text-muted-foreground transition-colors duration-200',
@@ -214,7 +218,7 @@ const ProjectsView: FC = () => {
           <select
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            aria-label="Sort projects by"
+            aria-label={t('projects.sortLabel')}
             className={cn(
               'appearance-none rounded-xl border border-border bg-background ps-8 pe-8 py-2 text-sm text-foreground cursor-pointer',
               'transition-colors duration-200',
@@ -240,18 +244,18 @@ const ProjectsView: FC = () => {
         <ProjectsSkeletonGrid />
       ) : isEmpty ? (
         <EmptyState
-          title="No projects match"
+          title={t('projects.noMatch')}
           hint={
             hasAnyProjects
-              ? 'Try adjusting your search or status filter.'
-              : 'No projects have been synced yet.'
+              ? t('projects.noMatchHint')
+              : t('projects.noProjectsYet')
           }
           className="mt-4"
         />
       ) : (
         <div
           role="list"
-          aria-label={`Projects — ${filtered.length} shown`}
+          aria-label={`${t('projects.title')} — ${filtered.length} ${t('projects.shown')}`}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           {filtered.map((project) => (

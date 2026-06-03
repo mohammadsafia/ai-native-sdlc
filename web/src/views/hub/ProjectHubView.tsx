@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Button, Skeleton } from '@components/ui';
 import {
@@ -102,6 +103,7 @@ function ProjectHubSkeleton() {
 const ProjectHubView: FC = () => {
   const { id = '' } = useParams<{ id: string }>();
   const { data: project, isLoading } = useProject(id);
+  const { t } = useTranslation();
 
   // ── Loading state ──
   if (isLoading) {
@@ -112,8 +114,8 @@ const ProjectHubView: FC = () => {
   if (!project) {
     return (
       <EmptyState
-        title="Project not found"
-        hint="This project may have been removed or the URL is incorrect."
+        title={t('hub.projectNotFound')}
+        hint={t('hub.projectNotFoundHint')}
         className="mt-16"
       />
     );
@@ -130,7 +132,7 @@ const ProjectHubView: FC = () => {
             to={FULL_ROUTES_PATH.PROJECTS.INDEX}
             className="transition-colors duration-150 hover:text-foreground"
           >
-            Projects
+            {t('nav.projects')}
           </Link>
           <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/50 rtl:rotate-180" aria-hidden="true" />
           <span className="text-foreground/70">{project.name}</span>
@@ -139,18 +141,18 @@ const ProjectHubView: FC = () => {
         {/* Title row + actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Project Hub</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('hub.title')}</h1>
             <HealthBadge score={project.health.overall} label={project.health.label} />
           </div>
 
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5">
               <Download className="h-3.5 w-3.5" aria-hidden="true" />
-              Export
+              {t('common.export')}
             </Button>
             <Button variant="default" size="sm" className="gap-1.5">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              Generate report
+              {t('common.generateReport')}
             </Button>
           </div>
         </div>
@@ -181,7 +183,7 @@ const ProjectHubView: FC = () => {
               <Card.Content className="p-0">
                 <MetricStat
                   value={project.risks.length}
-                  label="Open risks"
+                  label={t('hub.openRisks')}
                   tone="destructive"
                 />
               </Card.Content>
@@ -190,7 +192,7 @@ const ProjectHubView: FC = () => {
               <Card.Content className="p-0">
                 <MetricStat
                   value={project.blockers.length}
-                  label="Blockers"
+                  label={t('hub.blockers')}
                   tone="warning"
                 />
               </Card.Content>
@@ -200,7 +202,7 @@ const ProjectHubView: FC = () => {
           {/* Timeline forecast */}
           <Card>
             <Card.Header className="pb-2">
-              <Card.Title className="text-sm font-semibold text-foreground">Forecast</Card.Title>
+              <Card.Title className="text-sm font-semibold text-foreground">{t('hub.forecast')}</Card.Title>
             </Card.Header>
             <Card.Content className="pt-0">
               <TimelineForecastBar forecast={project.forecast} />
@@ -216,11 +218,11 @@ const ProjectHubView: FC = () => {
         {/* Top risks */}
         <Card>
           <Card.Header>
-            <Card.Title className="text-base font-semibold">Top risks</Card.Title>
+            <Card.Title className="text-base font-semibold">{t('hub.topRisks')}</Card.Title>
           </Card.Header>
           <Card.Content className="pt-0">
             {project.risks.length === 0 ? (
-              <EmptyState title="No open risks" hint="All risks have been resolved." />
+              <EmptyState title={t('hub.noOpenRisks')} hint={t('hub.noOpenRisksHint')} />
             ) : (
               <div>
                 {project.risks.map((risk) => (
@@ -234,11 +236,11 @@ const ProjectHubView: FC = () => {
         {/* Key decisions */}
         <Card>
           <Card.Header>
-            <Card.Title className="text-base font-semibold">Key decisions</Card.Title>
+            <Card.Title className="text-base font-semibold">{t('hub.keyDecisions')}</Card.Title>
           </Card.Header>
           <Card.Content className="pt-0">
             {project.decisions.length === 0 ? (
-              <EmptyState title="No decisions recorded" hint="Decisions logged here will appear in reports." />
+              <EmptyState title={t('hub.noDecisions')} hint={t('hub.noDecisionsHint')} />
             ) : (
               <div>
                 {project.decisions.map((decision) => (
