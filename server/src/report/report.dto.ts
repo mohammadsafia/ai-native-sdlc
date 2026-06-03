@@ -106,10 +106,17 @@ export class WeeklyReportDto {
 
   @ApiProperty({
     type: 'array',
-    items: { type: 'object', properties: { id: { type: 'string' }, daysIdle: { type: 'number' } } },
-    description: 'Idle PRs — placeholder; populated by the Bitbucket connector (next slice)',
+    items: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        title: { type: 'string' },
+        daysIdle: { type: 'number' },
+      },
+    },
+    description: 'Open PRs with no update for longer than prIdleDays',
   })
-  idlePrs: { id: string; daysIdle: number }[];
+  idlePrs: { id: string; title: string; daysIdle: number }[];
 
   @ApiProperty({ type: [RiskDto], description: 'Computed risks: scope_creep and resource_overload for this slice' })
   risks: RiskDto[];

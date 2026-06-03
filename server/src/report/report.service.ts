@@ -6,6 +6,7 @@ import { WeeklyReportDto, ReportItemDto, RiskDto } from './report.dto';
 export interface ReportOptions {
   windowDays?: number;
   staleDays?: number;
+  prIdleDays?: number;
   overloadThreshold?: number;
   blockedStatuses?: string[];
   asOf?: Date; // override "now" for deterministic tests
@@ -19,10 +20,14 @@ export class ReportService {
     const {
       windowDays = 7,
       staleDays = 3,
+      prIdleDays = 2,
       overloadThreshold = 5,
       blockedStatuses = ['Blocked'],
       asOf = new Date(),
     } = opts;
+
+    // suppress unused warning for windowDays (reserved for future use)
+    void windowDays;
 
     // --- 1. Resolve the project -----------------------------------------------
     const project = await this.prisma.project.findUnique({
@@ -46,7 +51,17 @@ export class ReportService {
       },
     });
 
-    // --- 4. Classify artifacts into mutually exclusive buckets ----------------
+    // --- 4. Fetch commits for this project ------------------------------------
+    const commits = await this.prisma.commit.findMany({
+      where: { projectId: project.id },
+    });
+
+    // --- 5. Fetch open PRs for this project -----------------------------------
+    const openPrs = await this.prisma.pullRequest.findMany({
+      where: { projectId: project.id, state: 'OPEN' },
+    });
+
+    // --- 6. Classify artifacts into mutually exclusive buckets ----------------
     // blocked:     statusCategory == 'in_progress' AND status name is in blockedStatuses
     // inProgress:  statusCategory == 'in_progress' AND NOT blocked
     // done:        statusCategory == 'done'
@@ -73,24 +88,57 @@ export class ReportService {
       }
     }
 
-    // --- 5. Points committed / completed --------------------------------------
+    // --- 7. Points committed / completed --------------------------------------
     const sum = (arr: typeof artifacts) =>
       arr.reduce((acc, a) => acc + (a.points ?? 0), 0);
 
     const pointsCompleted = sum(doneArtifacts);
     const pointsCommitted = sum(artifacts); // all sprint artifacts
 
-    // --- 6. Stale stories -----------------------------------------------------
+    // --- 8. Staleness (commit-based when commits exist; fallback to Jira proxy) -
     const staleThreshold = new Date(asOf.getTime() - staleDays * 86_400_000);
-    const staleArtifacts = inProgressArtifacts.filter(
-      (a) => a.jiraUpdatedAt < staleThreshold,
-    );
+    const hasCommits = commits.length > 0;
+    const stalenessMode: 'commit' | 'jira-proxy' = hasCommits ? 'commit' : 'jira-proxy';
 
-    // --- 7. Risks -------------------------------------------------------------
+    let staleArtifacts: typeof artifacts;
+
+    if (stalenessMode === 'commit') {
+      // An in-progress artifact is stale if NO linked commit is dated >= staleThreshold
+      staleArtifacts = inProgressArtifacts.filter((a) => {
+        const linkedCommits = commits.filter((c) =>
+          (c.linkedIssueKeys as string[]).includes(a.key),
+        );
+        if (linkedCommits.length === 0) {
+          // No commits linked at all → stale
+          return true;
+        }
+        // Has at least one recent commit → NOT stale
+        return !linkedCommits.some((c) => c.date >= staleThreshold);
+      });
+    } else {
+      // Fallback: Jira-updated proxy (existing behavior)
+      staleArtifacts = inProgressArtifacts.filter(
+        (a) => a.jiraUpdatedAt < staleThreshold,
+      );
+    }
+
+    // --- 9. Idle PRs ----------------------------------------------------------
+    const prIdleThreshold = new Date(asOf.getTime() - prIdleDays * 86_400_000);
+    const idlePrs = openPrs
+      .filter((pr) => (pr.updatedOn as Date) < prIdleThreshold)
+      .map((pr) => ({
+        id: pr.id,
+        title: pr.title,
+        daysIdle: Math.floor(
+          (asOf.getTime() - (pr.updatedOn as Date).getTime()) / 86_400_000,
+        ),
+      }));
+
+    // --- 10. Risks -------------------------------------------------------------
     const risks: RiskDto[] = [];
     let riskSeq = 0;
 
-    // 7a. Scope-creep risks
+    // 10a. Scope-creep risks
     const scopeCreepArtifacts = artifacts.filter((a) => a.addedToSprintAfterStart);
     for (const a of scopeCreepArtifacts) {
       risks.push({
@@ -106,7 +154,7 @@ export class ReportService {
       });
     }
 
-    // 7b. Resource-overload risks
+    // 10b. Resource-overload risks
     const inProgressByAssignee = new Map<string, string[]>();
     for (const a of inProgressArtifacts) {
       const assignee = a.assignee ?? 'Unassigned';
@@ -130,7 +178,7 @@ export class ReportService {
       }
     }
 
-    // --- 8. Narrative (deterministic template — LLM gateway is the next slice) -
+    // --- 11. Narrative --------------------------------------------------------
     const staleKeys = staleArtifacts.map((a) => `[[${a.key}]]`).join(', ') || 'none';
     const scopeCreepKeys = scopeCreepArtifacts.map((a) => `[[${a.key}]]`).join(', ') || 'none';
     const narrative =
@@ -139,17 +187,17 @@ export class ReportService {
       `${blockedArtifacts.length} blocked, ` +
       `${todoArtifacts.length} to-do. ` +
       `Points: ${pointsCompleted}/${pointsCommitted} completed. ` +
-      `${staleArtifacts.length} stale story(ies) with no Jira activity in ${staleDays}+ days: ${staleKeys}. ` +
+      `${staleArtifacts.length} stale story(ies) (${stalenessMode === 'commit' ? 'commit-based' : 'Jira-update proxy'}, ${staleDays}+ days): ${staleKeys}. ` +
       `${scopeCreepArtifacts.length} scope-creep item(s) added after sprint start: ${scopeCreepKeys}. ` +
+      `${idlePrs.length} idle PR(s) (no update in ${prIdleDays}+ days). ` +
       `${risks.length} risk(s) detected. ` +
-      `NOTE: staleness is Jira-update-based; commit-based staleness arrives with the Bitbucket connector. ` +
       `NOTE: narrative will be Claude-generated once the LLM gateway is wired.`;
 
-    // --- 9. Derived period-end (next Friday relative to asOf) -----------------
+    // --- 12. Derived period-end (next Friday relative to asOf) ----------------
     const periodEnd = nextFriday(asOf).toISOString().slice(0, 10);
 
-    // --- 10. dataCompleteness: 0.8 until Bitbucket connector lands ------------
-    const dataCompleteness = 0.8;
+    // --- 13. dataCompleteness: 1.0 when Bitbucket data present, 0.8 otherwise -
+    const dataCompleteness = hasCommits ? 1.0 : 0.8;
 
     const toItem = (a: (typeof artifacts)[0]): ReportItemDto => ({
       key: a.key,
@@ -174,7 +222,7 @@ export class ReportService {
       completed: doneArtifacts.map(toItem),
       inProgress: inProgressArtifacts.map(toItem),
       staleStories: staleArtifacts.map(toItem),
-      idlePrs: [],
+      idlePrs,
       risks,
       narrative,
     };

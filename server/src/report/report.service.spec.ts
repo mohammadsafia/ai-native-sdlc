@@ -83,6 +83,8 @@ function buildMockPrisma(overrides: {
   project?: object | null;
   sprint?: object | null;
   artifacts?: object[];
+  commits?: object[];
+  pullRequests?: object[];
 } = {}) {
   return {
     project: {
@@ -93,6 +95,12 @@ function buildMockPrisma(overrides: {
     },
     artifact: {
       findMany: jest.fn().mockResolvedValue(overrides.artifacts !== undefined ? overrides.artifacts : FIXTURES),
+    },
+    commit: {
+      findMany: jest.fn().mockResolvedValue(overrides.commits !== undefined ? overrides.commits : []),
+    },
+    pullRequest: {
+      findMany: jest.fn().mockResolvedValue(overrides.pullRequests !== undefined ? overrides.pullRequests : []),
     },
   };
 }
@@ -277,7 +285,7 @@ describe('ReportService', () => {
       expect(report.dataCompleteness).toBe(0.8);
     });
 
-    it('idlePrs is an empty array (Bitbucket connector pending)', async () => {
+    it('idlePrs is an empty array when no open PRs exist', async () => {
       const report = await service.compute('PROJ', { asOf: FROZEN_NOW });
       expect(report.idlePrs).toEqual([]);
     });
@@ -286,6 +294,152 @@ describe('ReportService', () => {
       const report = await service.compute('PROJ', { asOf: FROZEN_NOW });
       expect(report.narrative).toContain('PROJ-10');
       expect(report.narrative).toContain('PROJ-99');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  describe('commit-based staleness (Bitbucket data present)', () => {
+    const FROZEN_NOW_CB = new Date('2026-06-03T12:00:00.000Z');
+
+    // Commit for PROJ-10 (in-progress in FIXTURES) dated 5 days ago — outside staleDays=3 window
+    // PROJ-10 is in_progress with jiraUpdatedAt 5 days ago; its OLD_COMMIT is also 5 days ago → stale
+    const OLD_COMMIT = {
+      id: 'c1',
+      projectId: 'proj-1',
+      repo: 'my-repo',
+      hash: 'abc123',
+      message: 'fix: resolve PROJ-10 null pointer',
+      author: 'Alice',
+      date: new Date(FROZEN_NOW_CB.getTime() - 5 * 86_400_000), // 2026-05-29
+      linkedIssueKeys: ['PROJ-10'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Commit for PROJ-3 (in-progress in FIXTURES) dated 1 day ago — within staleDays=3 window
+    const FRESH_COMMIT = {
+      id: 'c2',
+      projectId: 'proj-1',
+      repo: 'my-repo',
+      hash: 'def456',
+      message: 'feat: implement PROJ-3 dashboard widget',
+      author: 'Bob',
+      date: new Date(FROZEN_NOW_CB.getTime() - 1 * 86_400_000), // 2026-06-02
+      linkedIssueKeys: ['PROJ-3'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Open PR idle 4 days (older than prIdleDays=2)
+    const IDLE_PR = {
+      id: 'pr-1',
+      projectId: 'proj-1',
+      repo: 'my-repo',
+      prId: '101',
+      title: 'feat: PROJ-1 login flow fix',
+      state: 'OPEN',
+      sourceBranch: 'feature/PROJ-1-login-fix',
+      destBranch: 'main',
+      createdOn: new Date('2026-05-25T10:00:00.000Z'),
+      updatedOn: new Date(FROZEN_NOW_CB.getTime() - 4 * 86_400_000), // 2026-05-30
+      linkedIssueKeys: ['PROJ-1'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Open PR fresh (not idle)
+    const FRESH_PR = {
+      id: 'pr-2',
+      projectId: 'proj-1',
+      repo: 'my-repo',
+      prId: '102',
+      title: 'feat: PROJ-3 dashboard widget',
+      state: 'OPEN',
+      sourceBranch: 'feature/PROJ-3-dashboard',
+      destBranch: 'main',
+      createdOn: new Date('2026-06-01T10:00:00.000Z'),
+      updatedOn: new Date(FROZEN_NOW_CB.getTime() - 1 * 86_400_000), // 2026-06-02
+      linkedIssueKeys: ['PROJ-3'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('PROJ-10 with old commit (5 days ago) is stale at staleDays=3', async () => {
+      // PROJ-10 is in_progress in FIXTURES; its linked commit is 5 days old → stale
+      const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT, FRESH_COMMIT] });
+      const mod = await Test.createTestingModule({
+        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+      }).compile();
+      const svc = mod.get<ReportService>(ReportService);
+
+      const report = await svc.compute('PROJ', { asOf: FROZEN_NOW_CB, staleDays: 3 });
+      const staleKeys = report.staleStories.map((s) => s.key);
+      expect(staleKeys).toContain('PROJ-10');
+    });
+
+    it('PROJ-3 with fresh commit (1 day ago) is NOT stale at staleDays=3', async () => {
+      // PROJ-3 is in_progress in FIXTURES; its linked commit is 1 day old → not stale
+      const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT, FRESH_COMMIT] });
+      const mod = await Test.createTestingModule({
+        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+      }).compile();
+      const svc = mod.get<ReportService>(ReportService);
+
+      const report = await svc.compute('PROJ', { asOf: FROZEN_NOW_CB, staleDays: 3 });
+      const staleKeys = report.staleStories.map((s) => s.key);
+      expect(staleKeys).not.toContain('PROJ-3');
+    });
+
+    it('dataCompleteness is 1.0 when commits exist', async () => {
+      const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT] });
+      const mod = await Test.createTestingModule({
+        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+      }).compile();
+      const svc = mod.get<ReportService>(ReportService);
+
+      const report = await svc.compute('PROJ', { asOf: FROZEN_NOW_CB });
+      expect(report.dataCompleteness).toBe(1.0);
+    });
+
+    it('idle PR (4 days old) appears in idlePrs with correct daysIdle', async () => {
+      const mockPrismaCB = buildMockPrisma({
+        commits: [OLD_COMMIT],
+        pullRequests: [IDLE_PR, FRESH_PR],
+      });
+      const mod = await Test.createTestingModule({
+        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+      }).compile();
+      const svc = mod.get<ReportService>(ReportService);
+
+      const report = await svc.compute('PROJ', { asOf: FROZEN_NOW_CB, prIdleDays: 2 });
+      expect(report.idlePrs).toHaveLength(1);
+      expect(report.idlePrs[0].id).toBe('pr-1');
+      expect(report.idlePrs[0].daysIdle).toBe(4);
+    });
+
+    it('fresh PR (1 day old) does NOT appear in idlePrs at prIdleDays=2', async () => {
+      const mockPrismaCB = buildMockPrisma({
+        commits: [OLD_COMMIT],
+        pullRequests: [FRESH_PR],
+      });
+      const mod = await Test.createTestingModule({
+        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+      }).compile();
+      const svc = mod.get<ReportService>(ReportService);
+
+      const report = await svc.compute('PROJ', { asOf: FROZEN_NOW_CB, prIdleDays: 2 });
+      expect(report.idlePrs).toHaveLength(0);
+    });
+
+    it('narrative indicates commit-based staleness mode when commits exist', async () => {
+      const mockPrismaCB = buildMockPrisma({ commits: [OLD_COMMIT, FRESH_COMMIT] });
+      const mod = await Test.createTestingModule({
+        providers: [ReportService, { provide: PrismaService, useValue: mockPrismaCB }],
+      }).compile();
+      const svc = mod.get<ReportService>(ReportService);
+
+      const report = await svc.compute('PROJ', { asOf: FROZEN_NOW_CB });
+      expect(report.narrative).toContain('commit-based');
     });
   });
 });
