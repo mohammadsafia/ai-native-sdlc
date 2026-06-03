@@ -60,7 +60,12 @@
       "blocked": "محجوب"
     },
     "lead": "القائد",
-    "sprint": "السبرينت"
+    "sprint": "السبرينت",
+    "tableColProject": "المشروع",
+    "tableColHealth": "الصحة",
+    "tableColRisks": "المخاطر المفتوحة",
+    "tableColLead": "القائد",
+    "tableColSynced": "آخر مزامنة"
   },
   "portfolio": {
     "title": "المحفظة",

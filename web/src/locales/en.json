@@ -60,7 +60,12 @@
       "blocked": "Blocked"
     },
     "lead": "Lead",
-    "sprint": "Sprint"
+    "sprint": "Sprint",
+    "tableColProject": "Project",
+    "tableColHealth": "Health",
+    "tableColRisks": "Open Risks",
+    "tableColLead": "Lead",
+    "tableColSynced": "Last Synced"
   },
   "portfolio": {
     "title": "Portfolio",

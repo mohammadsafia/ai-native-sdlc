@@ -1,6 +1,6 @@
 import { delay } from './latency';
 import { PROJECTS, PORTFOLIO } from './fixtures';
-import type { PaginatedResult, Risk } from '@app-types';
+import type { PaginatedResult, Risk, Project } from '@app-types';
 
 export { PROJECTS, PORTFOLIO };
 
@@ -55,6 +55,76 @@ export const api = {
   getTraceability: async (id: string) => {
     await delay();
     return PROJECTS.find((x) => x.id === id)!.trace;
+  },
+
+  /**
+   * Server-paginated project list for the DataTable.
+   * Supports: global search (name|key|lead.name),
+   *           faceted `status` filter (healthy|at-risk|blocked),
+   *           sorting by any field (field:asc|desc),
+   *           and page / pageSize pagination.
+   */
+  listProjectsPaged: async (rawParams: string): Promise<PaginatedResult<Omit<Project, 'trace' | 'report'>>> => {
+    await delay(400);
+
+    const p = parseParams(rawParams);
+
+    const page = Math.max(1, Number(p['page'] ?? 1));
+    const pageSize = Math.max(1, Number(p['pageSize'] ?? 10));
+    const search = (p['search'] as string | undefined)?.toLowerCase() ?? '';
+    const sortParam = (p['sort'] as string | undefined) ?? '';
+
+    // Faceted status filter: status=healthy&status=at-risk
+    const statusFilter: string[] = Array.isArray(p['status'])
+      ? (p['status'] as string[])
+      : p['status']
+        ? [p['status'] as string]
+        : [];
+
+    type ProjectRow = Omit<Project, 'trace' | 'report'>;
+
+    let projects: ProjectRow[] = PROJECTS.map(({ trace: _trace, report: _report, ...proj }) => proj);
+
+    // Global search — name, key, lead.name
+    if (search) {
+      projects = projects.filter(
+        (proj) =>
+          proj.name.toLowerCase().includes(search) ||
+          proj.key.toLowerCase().includes(search) ||
+          proj.lead.name.toLowerCase().includes(search),
+      );
+    }
+
+    // Faceted status filter
+    if (statusFilter.length > 0) {
+      projects = projects.filter((proj) => statusFilter.includes(proj.status));
+    }
+
+    // Sorting: "field:asc" or "field:desc"
+    if (sortParam) {
+      const [field, dir] = sortParam.split(':');
+      const desc = dir === 'desc';
+      projects = [...projects].sort((a, b) => {
+        // Support nested "health.overall" as a special case
+        const aVal: string | number =
+          field === 'health.overall' ? a.health.overall : ((a[field as keyof ProjectRow] ?? '') as string | number);
+        const bVal: string | number =
+          field === 'health.overall' ? b.health.overall : ((b[field as keyof ProjectRow] ?? '') as string | number);
+        if (aVal < bVal) return desc ? 1 : -1;
+        if (aVal > bVal) return desc ? -1 : 1;
+        return 0;
+      });
+    }
+
+    const total = projects.length;
+    const totalPage = Math.max(1, Math.ceil(total / pageSize));
+    const start = (page - 1) * pageSize;
+    const data = projects.slice(start, start + pageSize);
+
+    return {
+      data,
+      pagination: { page, pageSize, total, totalPage },
+    };
   },
 
   /**
