@@ -22,9 +22,25 @@ import type { Project, Risk, WeeklyReport } from '@app-types';
 
 // ─── Backend DTO shapes (subset of what the server actually returns) ──────────
 
+interface BackendSubScores {
+  scope: number;
+  timeline: number;
+  velocity: number;
+  techRisk: number;
+}
+
 interface BackendHealthScore {
   overall: number;
   label: 'healthy' | 'at-risk' | 'blocked';
+  subScores?: BackendSubScores;
+}
+
+interface BackendTimelineForecast {
+  expected: string;
+  low: string;
+  high: string;
+  confidence: number;
+  basisSprints: string[];
 }
 
 interface BackendProjectSummary {
@@ -35,6 +51,7 @@ interface BackendProjectSummary {
   health: BackendHealthScore;
   lastSyncedAt: string | null;
   openRiskCount: number;
+  forecast?: BackendTimelineForecast;
 }
 
 // WeeklyReportDto from the server is structurally identical to WeeklyReport.
@@ -79,6 +96,8 @@ function placeholderRisks(projectId: string, n: number): Risk[] {
  * When `report` is provided (Hub), `report`/`risks` are real; otherwise (list)
  * `risks` is a length-only placeholder of `openRiskCount`.
  */
+const EMPTY_FORECAST = { expected: '', low: '', high: '', confidence: 0, basisSprints: [] };
+
 function toProject(dto: BackendProjectSummary, report?: WeeklyReport): Project {
   const id = dto.key; // use Jira key as id in live mode
   return {
@@ -90,14 +109,14 @@ function toProject(dto: BackendProjectSummary, report?: WeeklyReport): Project {
     health: {
       overall: dto.health.overall,
       label: dto.health.label,
-      subScores: { scope: 0, timeline: 0, velocity: 0, techRisk: 0 },
+      subScores: dto.health.subScores ?? { scope: 0, timeline: 0, velocity: 0, techRisk: 0 },
     },
     lead: { id: '', name: '—', initials: '?', role: '' },
     sprint: { id: '', name: '—', committed: 0, completed: 0, start: '', end: '' },
     risks: report ? report.risks : placeholderRisks(id, dto.openRiskCount),
     decisions: [],
     blockers: [],
-    forecast: { expected: '', low: '', high: '', confidence: 0, basisSprints: [] },
+    forecast: dto.forecast ?? EMPTY_FORECAST,
     velocityHistory: [],
     report: report ?? emptyReport(id),
     trace: [],
