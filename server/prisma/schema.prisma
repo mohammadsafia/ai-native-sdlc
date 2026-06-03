@@ -18,9 +18,11 @@ model Project {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  sprints   Sprint[]
-  artifacts Artifact[]
-  syncRuns  SyncRun[]
+  sprints      Sprint[]
+  artifacts    Artifact[]
+  syncRuns     SyncRun[]
+  commits      Commit[]
+  pullRequests PullRequest[]
 
   @@map("projects")
 }
@@ -79,4 +81,38 @@ model SyncRun {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("sync_runs")
+}
+
+model Commit {
+  id              String   @id @default(cuid())
+  repo            String
+  hash            String   @unique
+  message         String
+  author          String
+  date            DateTime
+  linkedIssueKeys String[]
+  projectId       String?
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("commits")
+}
+
+model PullRequest {
+  id              String   @id @default(cuid())
+  repo            String
+  prId            String
+  title           String
+  state           String   // OPEN | MERGED | DECLINED | SUPERSEDED
+  sourceBranch    String
+  destBranch      String
+  createdOn       DateTime
+  updatedOn       DateTime
+  linkedIssueKeys String[]
+  projectId       String?
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([repo, prId])
+  @@map("pull_requests")
 }

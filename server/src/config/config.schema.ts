@@ -13,6 +13,10 @@ export const envSchema = z.object({
   JIRA_EMAIL: z.string().optional().default(''),
   JIRA_API_TOKEN: z.string().optional().default(''),
   JIRA_PROJECT_KEYS: z.string().optional().default(''),
+  BITBUCKET_WORKSPACE: z.string().optional().default(''),
+  BITBUCKET_USERNAME: z.string().optional().default(''),
+  BITBUCKET_APP_PASSWORD: z.string().optional().default(''),
+  BITBUCKET_REPOS: z.string().optional().default(''),
   PORT: z
     .string()
     .optional()

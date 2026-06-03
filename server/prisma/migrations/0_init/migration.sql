@@ -85,3 +85,46 @@ ALTER TABLE "artifacts" ADD CONSTRAINT "artifacts_sprintId_fkey" FOREIGN KEY ("s
 -- AddForeignKey
 ALTER TABLE "sync_runs" ADD CONSTRAINT "sync_runs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- CreateTable
+CREATE TABLE "commits" (
+    "id" TEXT NOT NULL,
+    "repo" TEXT NOT NULL,
+    "hash" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "author" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "linkedIssueKeys" TEXT[],
+    "projectId" TEXT,
+
+    CONSTRAINT "commits_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "pull_requests" (
+    "id" TEXT NOT NULL,
+    "repo" TEXT NOT NULL,
+    "prId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "state" TEXT NOT NULL,
+    "sourceBranch" TEXT NOT NULL,
+    "destBranch" TEXT NOT NULL,
+    "createdOn" TIMESTAMP(3) NOT NULL,
+    "updatedOn" TIMESTAMP(3) NOT NULL,
+    "linkedIssueKeys" TEXT[],
+    "projectId" TEXT,
+
+    CONSTRAINT "pull_requests_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "commits_hash_key" ON "commits"("hash");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "pull_requests_repo_prId_key" ON "pull_requests"("repo", "prId");
+
+-- AddForeignKey
+ALTER TABLE "commits" ADD CONSTRAINT "commits_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pull_requests" ADD CONSTRAINT "pull_requests_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

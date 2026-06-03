@@ -1,0 +1,24 @@
+{
+  "page1": {
+    "values": [
+      {
+        "id": 101,
+        "title": "feat: PROJ-1 login flow fix",
+        "state": "OPEN",
+        "source": { "branch": { "name": "feature/PROJ-1-login-fix" } },
+        "destination": { "branch": { "name": "main" } },
+        "created_on": "2026-05-25T10:00:00.000Z",
+        "updated_on": "2026-05-30T10:00:00.000Z"
+      },
+      {
+        "id": 102,
+        "title": "feat: PROJ-3 dashboard widget",
+        "state": "OPEN",
+        "source": { "branch": { "name": "feature/PROJ-3-dashboard" } },
+        "destination": { "branch": { "name": "main" } },
+        "created_on": "2026-06-01T10:00:00.000Z",
+        "updated_on": "2026-06-02T10:00:00.000Z"
+      }
+    ]
+  }
+}

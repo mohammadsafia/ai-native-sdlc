@@ -1,0 +1,35 @@
+{
+  "page1": {
+    "values": [
+      {
+        "hash": "abc123def456abc123def456abc123def456abc1",
+        "message": "fix: resolve PROJ-1 null pointer in login",
+        "date": "2026-05-29T10:00:00.000Z",
+        "author": { "raw": "Alice Smith <alice@example.com>" }
+      },
+      {
+        "hash": "def456abc123def456abc123def456abc123def4",
+        "message": "feat: implement PROJ-3 dashboard widget",
+        "date": "2026-06-02T09:00:00.000Z",
+        "author": { "raw": "Bob Jones <bob@example.com>" }
+      },
+      {
+        "hash": "111aaa222bbb333ccc444ddd555eee666fff7777",
+        "message": "chore: tidy up whitespace",
+        "date": "2026-06-01T08:00:00.000Z",
+        "author": { "raw": "Carol White <carol@example.com>" }
+      }
+    ],
+    "next": "https://api.bitbucket.org/2.0/repositories/myws/my-repo/commits?page=2"
+  },
+  "page2": {
+    "values": [
+      {
+        "hash": "999zzz888yyy777xxx666www555vvv444uuu333t",
+        "message": "docs: update PROJ-5 readme",
+        "date": "2026-05-28T07:00:00.000Z",
+        "author": { "raw": "Dave Brown <dave@example.com>" }
+      }
+    ]
+  }
+}

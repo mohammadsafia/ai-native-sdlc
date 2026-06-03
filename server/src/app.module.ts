@@ -7,6 +7,7 @@ import { JiraModule } from './jira/jira.module';
 import { NormalizationModule } from './normalization/normalization.module';
 import { ReportModule } from './report/report.module';
 import { ProjectsModule } from './projects/projects.module';
+import { BitbucketModule } from './bitbucket/bitbucket.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ProjectsModule } from './projects/projects.module';
     JiraModule,
     ReportModule,
     ProjectsModule,
+    BitbucketModule,
   ],
 })
 export class AppModule {}
