@@ -3,9 +3,9 @@ import { type FC, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { Card, Skeleton } from '@components/ui';
+import { Card, Input, Select, Skeleton, ToggleGroup } from '@components/ui';
 import { SeverityBadge, EvidenceChip, EmptyState } from '@components/shared';
-import { cn, FOCUS_RING } from '@utils';
+import { cn } from '@utils';
 import { useRisks } from '@hooks/queries';
 import { Search, ShieldAlert, AlertTriangle, Info, ChevronRight, Filter } from 'lucide-react';
 import type { RiskKind, Severity } from '@app-types';
@@ -43,14 +43,14 @@ function RisksSkeletonList() {
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
 
-interface FilterBarProps {
+type FilterBarProps = {
   kindFilter: 'all' | RiskKind;
   severityFilter: 'all' | Severity;
   searchQuery: string;
   onKindChange: (v: 'all' | RiskKind) => void;
   onSeverityChange: (v: 'all' | Severity) => void;
   onSearchChange: (v: string) => void;
-}
+};
 
 function FilterBar({
   kindFilter,
@@ -85,93 +85,64 @@ function FilterBar({
           className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
           aria-hidden="true"
         />
-        <input
+        <Input
           type="search"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={t('risks.searchPlaceholder')}
           aria-label={t('risks.searchLabel')}
-          className={cn(
-            'w-full sm:w-52 rounded-xl border border-border bg-background ps-8 pe-3 py-2 text-sm text-foreground',
-            'placeholder:text-muted-foreground transition-colors duration-200',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-            'hover:border-primary/30',
-          )}
+          className="w-full sm:w-52 rounded-xl ps-8 pe-3 py-2 text-sm"
         />
       </div>
 
       {/* Kind filter */}
-      <div className="relative flex items-center">
-        <Filter
-          className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <select
-          value={kindFilter}
-          onChange={(e) => onKindChange(e.target.value as 'all' | RiskKind)}
-          aria-label={t('risks.filterByKind')}
-          className={cn(
-            'appearance-none rounded-xl border border-border bg-background ps-8 pe-6 py-2 text-sm text-foreground cursor-pointer',
-            'transition-colors duration-200',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-            'hover:border-primary/30',
-          )}
-        >
+      <Select value={kindFilter} onValueChange={(v) => onKindChange(v as 'all' | RiskKind)}>
+        <Select.Trigger aria-label={t('risks.filterByKind')} className="rounded-xl py-2 text-sm sm:w-48">
+          <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
+          <Select.Value />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
           {KIND_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+            <Select.Item key={opt.value} value={opt.value}>
+              <Select.Text>{opt.label}</Select.Text>
+            </Select.Item>
           ))}
-        </select>
-      </div>
+        </Select.Content>
+      </Select>
 
       {/* Severity segmented control */}
-      <div
-        role="radiogroup"
+      <ToggleGroup
+        type="single"
+        value={severityFilter}
+        onValueChange={(v) => { if (v) onSeverityChange(v as 'all' | Severity); }}
         aria-label={t('risks.filterBySeverity')}
         className="inline-flex items-center gap-0.5 rounded-xl bg-primary-15 p-1"
       >
-        {SEVERITY_OPTIONS.map((opt) => {
-          const active = severityFilter === opt.value;
-          return (
-            <button
-              key={opt.value}
-              role="radio"
-              aria-checked={active}
-              onClick={() => onSeverityChange(opt.value as 'all' | Severity)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSeverityChange(opt.value as 'all' | Severity);
-                }
-              }}
-              className={cn(
-                'inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
-                FOCUS_RING,
-                active
-                  ? 'bg-background text-foreground shadow-sm shadow-border'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
+        {SEVERITY_OPTIONS.map((opt) => (
+          <ToggleGroup.Item
+            key={opt.value}
+            value={opt.value}
+            className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm data-[state=on]:shadow-border text-muted-foreground hover:text-foreground bg-transparent"
+          >
+            {opt.label}
+          </ToggleGroup.Item>
+        ))}
+      </ToggleGroup>
     </div>
   );
 }
 
 // ─── Risk list row ────────────────────────────────────────────────────────────
 
-interface RiskListRowProps {
+type RiskListRowProps = {
   id: string;
   severity: Severity;
   title: string;
   subjectRef: string;
   kind: RiskKind;
   recommendation: string;
-}
+};
 
 function RiskListRow({ id, severity, title, subjectRef, kind, recommendation }: RiskListRowProps) {
   const { t } = useTranslation();
@@ -227,9 +198,9 @@ function RiskListRow({ id, severity, title, subjectRef, kind, recommendation }: 
 
 // ─── Severity summary pills ───────────────────────────────────────────────────
 
-interface SeveritySummaryProps {
+type SeveritySummaryProps = {
   counts: { high: number; medium: number; low: number };
-}
+};
 
 function SeveritySummary({ counts }: SeveritySummaryProps) {
   const { t } = useTranslation();

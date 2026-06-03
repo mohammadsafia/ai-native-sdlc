@@ -8,8 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@utils';
 import { useWeeklyReport, useProjects } from '@hooks/queries';
 import { useActiveProject } from '@contexts';
-import Card from '@components/ui/card/Card';
-import Skeleton from '@components/ui/skeleton/Skeleton';
+import { Card, Select, Skeleton } from '@components/ui';
 import {
   ReportNarrative,
   MetricStat,
@@ -24,10 +23,10 @@ dayjs.extend(relativeTime);
 
 // ─── Project selector ─────────────────────────────────────────────────────────
 
-interface ProjectSelectorProps {
+type ProjectSelectorProps = {
   activeId: string;
   onSelect: (id: string) => void;
-}
+};
 
 function ProjectSelector({ activeId, onSelect }: ProjectSelectorProps) {
   const { data: projects = [], isLoading } = useProjects();
@@ -38,23 +37,19 @@ function ProjectSelector({ activeId, onSelect }: ProjectSelectorProps) {
   }
 
   return (
-    <select
-      value={activeId}
-      onChange={(e) => onSelect(e.target.value)}
-      aria-label={t('report.project')}
-      className={cn(
-        'rounded-xl border border-border bg-surface px-3 py-1.5 text-sm text-foreground cursor-pointer',
-        'transition-colors duration-200',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1',
-        'hover:border-primary/30',
-      )}
-    >
-      {projects.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-        </option>
-      ))}
-    </select>
+    <Select value={activeId} onValueChange={onSelect}>
+      <Select.Trigger aria-label={t('report.project')} className="w-40 py-1.5 text-sm">
+        <Select.Value />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Content>
+        {projects.map((p) => (
+          <Select.Item key={p.id} value={p.id}>
+            <Select.Text>{p.name}</Select.Text>
+          </Select.Item>
+        ))}
+      </Select.Content>
+    </Select>
   );
 }
 
@@ -108,10 +103,10 @@ function ReportSkeleton() {
 
 // ─── Story row ────────────────────────────────────────────────────────────────
 
-interface StoryRowProps {
+type StoryRowProps = {
   item: ReportItem;
   tone?: 'default' | 'warning';
-}
+};
 
 function StoryRow({ item, tone = 'default' }: StoryRowProps) {
   return (
@@ -136,12 +131,12 @@ function StoryRow({ item, tone = 'default' }: StoryRowProps) {
 
 // ─── Section card ─────────────────────────────────────────────────────────────
 
-interface SectionCardProps {
+type SectionCardProps = {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
   className?: string;
-}
+};
 
 function SectionCard({ title, icon, children, className }: SectionCardProps) {
   return (

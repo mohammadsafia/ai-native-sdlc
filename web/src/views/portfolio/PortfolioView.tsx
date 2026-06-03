@@ -6,8 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@utils';
 import { usePortfolio } from '@hooks/queries';
-import Card from '@components/ui/card/Card';
-import Skeleton from '@components/ui/skeleton/Skeleton';
+import { Card, Skeleton } from '@components/ui';
 import {
   HealthHeatmap,
   RiskRollup,

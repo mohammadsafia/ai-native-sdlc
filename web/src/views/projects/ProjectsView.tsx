@@ -1,11 +1,11 @@
 import { type FC, useState, useMemo } from 'react';
 
 import { useTranslation } from 'react-i18next';
-import { Skeleton } from '@components/ui';
+import { Input, Select, Skeleton, ToggleGroup } from '@components/ui';
 import { ProjectCard, EmptyState } from '@components/shared';
-import { cn, FOCUS_RING } from '@utils';
+import { cn } from '@utils';
 import { useProjects } from '@hooks/queries';
-import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Search, ArrowUpDown } from 'lucide-react';
 import type { Project, ProjectStatus } from '@app-types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,11 +47,11 @@ function ProjectsSkeletonGrid() {
 
 // ─── Segmented status control ─────────────────────────────────────────────────
 
-interface StatusSegmentProps {
+type StatusSegmentProps = {
   value: StatusFilter;
   onChange: (v: StatusFilter) => void;
   counts: Record<StatusFilter, number>;
-}
+};
 
 function StatusSegment({ value, onChange, counts }: StatusSegmentProps) {
   const { t } = useTranslation();
@@ -64,50 +64,35 @@ function StatusSegment({ value, onChange, counts }: StatusSegmentProps) {
   ];
 
   return (
-    <div
-      role="radiogroup"
+    <ToggleGroup
+      type="single"
+      value={value}
+      onValueChange={(v) => { if (v) onChange(v as StatusFilter); }}
       aria-label={t('projects.filterByStatus')}
       className="inline-flex items-center gap-0.5 rounded-xl bg-primary-15 p-1"
     >
-      {STATUS_OPTIONS.map((opt) => {
-        const active = value === opt.value;
-        return (
-          <button
-            key={opt.value}
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(opt.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onChange(opt.value);
-              }
-            }}
-            className={cn(
-              'relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
-              FOCUS_RING,
-              active
-                ? 'bg-background text-foreground shadow-sm shadow-border'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {opt.label}
-            {counts[opt.value] > 0 && (
-              <span
-                className={cn(
-                  'inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-2xs font-semibold tabular-nums',
-                  active
-                    ? 'bg-primary-15 text-foreground'
-                    : 'bg-primary-15/60 text-muted-foreground',
-                )}
-              >
-                {counts[opt.value]}
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
+      {STATUS_OPTIONS.map((opt) => (
+        <ToggleGroup.Item
+          key={opt.value}
+          value={opt.value}
+          className="relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm data-[state=on]:shadow-border text-muted-foreground hover:text-foreground bg-transparent"
+        >
+          {opt.label}
+          {counts[opt.value] > 0 && (
+            <span
+              className={cn(
+                'inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-2xs font-semibold tabular-nums',
+                value === opt.value
+                  ? 'bg-primary-15 text-foreground'
+                  : 'bg-primary-15/60 text-muted-foreground',
+              )}
+            >
+              {counts[opt.value]}
+            </span>
+          )}
+        </ToggleGroup.Item>
+      ))}
+    </ToggleGroup>
   );
 }
 
@@ -194,49 +179,31 @@ const ProjectsView: FC = () => {
             className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
             aria-hidden="true"
           />
-          <input
+          <Input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('projects.searchPlaceholder')}
             aria-label={t('projects.searchLabel')}
-            className={cn(
-              'w-full sm:w-56 rounded-xl border border-border bg-background ps-8 pe-3 py-2 text-sm text-foreground',
-              'placeholder:text-muted-foreground transition-colors duration-200',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background',
-              'hover:border-primary/30',
-            )}
+            className="w-full sm:w-56 rounded-xl ps-8 pe-3 py-2 text-sm"
           />
         </div>
 
         {/* Sort select */}
-        <div className="relative flex items-center">
-          <ArrowUpDown
-            className="pointer-events-none absolute start-3 h-3.5 w-3.5 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as SortKey)}
-            aria-label={t('projects.sortLabel')}
-            className={cn(
-              'appearance-none rounded-xl border border-border bg-background ps-8 pe-8 py-2 text-sm text-foreground cursor-pointer',
-              'transition-colors duration-200',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background',
-              'hover:border-primary/30',
-            )}
-          >
+        <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+          <Select.Trigger aria-label={t('projects.sortLabel')} className="rounded-xl py-2 text-sm sm:w-44">
+            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
+            <Select.Value />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
             {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+              <Select.Item key={opt.value} value={opt.value}>
+                <Select.Text>{opt.label}</Select.Text>
+              </Select.Item>
             ))}
-          </select>
-          <SlidersHorizontal
-            className="pointer-events-none absolute end-3 h-3.5 w-3.5 text-muted-foreground"
-            aria-hidden="true"
-          />
-        </div>
+          </Select.Content>
+        </Select>
       </div>
 
       {/* ── Content area ── */}
