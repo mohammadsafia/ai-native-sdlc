@@ -75,7 +75,7 @@ export class JiraClient {
           maxResults,
           startAt,
           fields:
-            'summary,issuetype,status,assignee,updated,customfield_10016,customfield_10028',
+            'summary,issuetype,status,assignee,updated,customfield_11025,customfield_10022,customfield_10016,customfield_10028',
         },
       );
 

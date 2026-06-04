@@ -32,7 +32,11 @@ export function isBlocked(
 
 /**
  * Extracts story points from issue fields.
- * Tries pointsFieldId first, then falls back to customfield_10016 and customfield_10028.
+ * Tries pointsFieldId first, then falls back to the common story-points custom
+ * fields across Jira instances:
+ *   - customfield_11025 "Story point estimate" (team-managed)
+ *   - customfield_10022 "Story Points" (company-managed)
+ *   - customfield_10016 / 10028 (other common defaults)
  * Returns null if no numeric value is found.
  */
 export function extractPoints(
@@ -41,6 +45,8 @@ export function extractPoints(
 ): number | null {
   const candidates = [
     pointsFieldId,
+    'customfield_11025',
+    'customfield_10022',
     'customfield_10016',
     'customfield_10028',
   ].filter(Boolean) as string[];
