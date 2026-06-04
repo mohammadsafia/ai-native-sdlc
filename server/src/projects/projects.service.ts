@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReportService } from '../report/report.service';
 import { DemoDataService } from '../demo/demo-data.service';
+import { LiveDataService } from '../live/live-data.service';
 import { ProjectSummaryDto, HealthScoreDto } from '../report/report.dto';
 import { computeForecast } from '../report/forecast';
 
@@ -86,10 +87,22 @@ export class ProjectsService {
     private readonly reportService: ReportService,
     private readonly configService: ConfigService,
     private readonly demoDataService: DemoDataService,
+    private readonly liveDataService: LiveDataService,
   ) {}
 
   async findAll(): Promise<ProjectSummaryDto[]> {
+    const isLiveFetch = this.configService.get<boolean>('LIVE_FETCH') === true;
     const isDemoMode = this.configService.get<boolean>('DEMO_MODE') === true;
+
+    if (isLiveFetch) {
+      const projects = await this.liveDataService.getProjects();
+      const summaries: ProjectSummaryDto[] = [];
+      for (const project of projects) {
+        const summary = await this.buildSummary(project);
+        summaries.push(summary);
+      }
+      return summaries;
+    }
 
     if (isDemoMode) {
       const projects = this.demoDataService.getProjects();
@@ -114,7 +127,16 @@ export class ProjectsService {
   }
 
   async findOne(key: string): Promise<ProjectSummaryDto> {
+    const isLiveFetch = this.configService.get<boolean>('LIVE_FETCH') === true;
     const isDemoMode = this.configService.get<boolean>('DEMO_MODE') === true;
+
+    if (isLiveFetch) {
+      const project = await this.liveDataService.getProject(key);
+      if (!project) {
+        throw new NotFoundException(`Project with key "${key}" not found`);
+      }
+      return this.buildSummary(project);
+    }
 
     if (isDemoMode) {
       const project = this.demoDataService.getProject(key);
@@ -176,7 +198,10 @@ export class ProjectsService {
     const openRiskCount = signals.highRiskCount + signals.scopeCreepCount + signals.resourceOverloadCount;
 
     // Build forecast from historical sprint velocity
-    const rawSprints = this.demoDataService.getSprints(project.key);
+    const isLiveFetchForSprints = this.configService.get<boolean>('LIVE_FETCH') === true;
+    const rawSprints = isLiveFetchForSprints
+      ? this.liveDataService.getSprints(project.key)
+      : this.demoDataService.getSprints(project.key);
 
     // For the Prisma path, fetch closed sprints from DB if DemoDataService returns empty
     let sprintSamples = rawSprints

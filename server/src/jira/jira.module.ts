@@ -9,6 +9,6 @@ import { NormalizationModule } from '../normalization/normalization.module';
   imports: [NormalizationModule],
   providers: [JiraClient, JiraConnectorService],
   controllers: [JiraController],
-  exports: [JiraConnectorService],
+  exports: [JiraConnectorService, JiraClient],
 })
 export class JiraModule {}

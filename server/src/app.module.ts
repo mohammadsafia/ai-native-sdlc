@@ -9,6 +9,7 @@ import { ReportModule } from './report/report.module';
 import { ProjectsModule } from './projects/projects.module';
 import { BitbucketModule } from './bitbucket/bitbucket.module';
 import { DemoModule } from './demo/demo.module';
+import { LiveModule } from './live/live.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DemoModule } from './demo/demo.module';
     ProjectsModule,
     BitbucketModule,
     DemoModule,
+    LiveModule,
   ],
 })
 export class AppModule {}

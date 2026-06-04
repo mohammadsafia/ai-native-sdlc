@@ -4,9 +4,10 @@ import { ProjectsService } from './projects.service';
 import { ProjectsController } from './projects.controller';
 import { ReportModule } from '../report/report.module';
 import { DemoModule } from '../demo/demo.module';
+import { LiveModule } from '../live/live.module';
 
 @Module({
-  imports: [ReportModule, DemoModule],
+  imports: [ReportModule, DemoModule, LiveModule],
   providers: [ProjectsService],
   controllers: [ProjectsController],
 })

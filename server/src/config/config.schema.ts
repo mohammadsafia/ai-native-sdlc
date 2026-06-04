@@ -23,6 +23,18 @@ export const envSchema = z.object({
     .default('false')
     .transform((val) => val === 'true' || val === '1')
     .pipe(z.boolean()),
+  LIVE_FETCH: z
+    .string()
+    .optional()
+    .default('false')
+    .transform((val) => val === 'true' || val === '1')
+    .pipe(z.boolean()),
+  JIRA_LOOKBACK_DAYS: z
+    .string()
+    .optional()
+    .default('120')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().positive()),
   ANTHROPIC_API_KEY: z.string().optional(),
   PORT: z
     .string()

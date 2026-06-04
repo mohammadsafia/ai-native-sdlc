@@ -8,14 +8,24 @@ import { NotFoundException } from '@nestjs/common';
 import { WeeklyReportDto } from '../report/report.dto';
 import { ConfigService } from '@nestjs/config';
 import { DemoDataService } from '../demo/demo-data.service';
+import { LiveDataService } from '../live/live-data.service';
 
-// DEMO_MODE=false → Prisma path
+// DEMO_MODE=false, LIVE_FETCH=false → Prisma path
 const mockConfigService = { get: jest.fn().mockReturnValue(false) };
 
 const mockDemoDataService = {
   getProjects: jest.fn().mockReturnValue([]),
   getProject: jest.fn().mockReturnValue(undefined),
   getArtifacts: jest.fn().mockReturnValue([]),
+  getCommits: jest.fn().mockReturnValue([]),
+  getPullRequests: jest.fn().mockReturnValue([]),
+  getSprints: jest.fn().mockReturnValue([]),
+};
+
+const mockLiveDataService = {
+  getProjects: jest.fn().mockResolvedValue([]),
+  getProject: jest.fn().mockResolvedValue(undefined),
+  getArtifacts: jest.fn().mockResolvedValue([]),
   getCommits: jest.fn().mockReturnValue([]),
   getPullRequests: jest.fn().mockReturnValue([]),
   getSprints: jest.fn().mockReturnValue([]),
@@ -255,6 +265,7 @@ describe('ProjectsService', () => {
         { provide: ReportService, useValue: mockReportService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: DemoDataService, useValue: mockDemoDataService },
+        { provide: LiveDataService, useValue: mockLiveDataService },
       ],
     }).compile();
 
@@ -326,6 +337,7 @@ describe('ProjectsService', () => {
           { provide: ReportService, useValue: mockReportService },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
         ],
       }).compile();
       const svc = module.get<ProjectsService>(ProjectsService);
@@ -359,6 +371,7 @@ describe('ProjectsService', () => {
           { provide: ReportService, useValue: mockReportService },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
         ],
       }).compile();
       const svc = module.get<ProjectsService>(ProjectsService);

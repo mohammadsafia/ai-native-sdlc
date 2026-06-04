@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { WeeklyReportDto, ReportItemDto, RiskDto } from './report.dto';
 import { DemoDataService } from '../demo/demo-data.service';
+import { LiveDataService } from '../live/live-data.service';
 import { NarrativeService, NarrativeInput } from './narrative.service';
 
 export interface ReportOptions {
@@ -277,17 +278,51 @@ export class ReportService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly demoDataService: DemoDataService,
+    private readonly liveDataService: LiveDataService,
     private readonly narrativeService: NarrativeService,
   ) {}
 
   async compute(projectKey: string, opts: ReportOptions = {}): Promise<WeeklyReportDto> {
+    const isLiveFetch = this.configService.get<boolean>('LIVE_FETCH') === true;
     const isDemoMode = this.configService.get<boolean>('DEMO_MODE') === true;
+
+    if (isLiveFetch) {
+      return this.computeLive(projectKey, opts);
+    }
 
     if (isDemoMode) {
       return this.computeDemo(projectKey, opts);
     }
 
     return this.computeFromPrisma(projectKey, opts);
+  }
+
+  // -------------------------------------------------------------------------
+  // Live-fetch path
+  // -------------------------------------------------------------------------
+
+  private async computeLive(projectKey: string, opts: ReportOptions): Promise<WeeklyReportDto> {
+    const project = await this.liveDataService.getProject(projectKey);
+    if (!project) {
+      throw new NotFoundException(`Project with key "${projectKey}" not found`);
+    }
+
+    const artifacts = await this.liveDataService.getArtifacts(projectKey);
+    // No Bitbucket in LIVE_FETCH — commits and PRs are empty
+    const commits = this.liveDataService.getCommits(projectKey);
+    const openPrs = this.liveDataService
+      .getPullRequests(projectKey)
+      .filter((pr) => pr.state === 'OPEN');
+
+    return computeFromData(
+      project.id,
+      projectKey,
+      artifacts,
+      commits,
+      openPrs,
+      opts,
+      (input) => this.narrativeService.generate(input),
+    );
   }
 
   // -------------------------------------------------------------------------

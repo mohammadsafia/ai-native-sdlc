@@ -5,15 +5,25 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DemoDataService } from '../demo/demo-data.service';
+import { LiveDataService } from '../live/live-data.service';
 import { NarrativeService } from './narrative.service';
 
-// Minimal ConfigService mock: DEMO_MODE = false (Prisma path)
+// Minimal ConfigService mock: DEMO_MODE = false, LIVE_FETCH = false (Prisma path)
 const mockConfigService = { get: jest.fn().mockReturnValue(false) };
 
 // Minimal DemoDataService mock (not used in non-demo tests)
 const mockDemoDataService = {
   getProject: jest.fn(),
   getArtifacts: jest.fn().mockReturnValue([]),
+  getCommits: jest.fn().mockReturnValue([]),
+  getPullRequests: jest.fn().mockReturnValue([]),
+  getSprints: jest.fn().mockReturnValue([]),
+};
+
+// Minimal LiveDataService mock (not used in non-live tests)
+const mockLiveDataService = {
+  getProject: jest.fn().mockResolvedValue(undefined),
+  getArtifacts: jest.fn().mockResolvedValue([]),
   getCommits: jest.fn().mockReturnValue([]),
   getPullRequests: jest.fn().mockReturnValue([]),
   getSprints: jest.fn().mockReturnValue([]),
@@ -166,6 +176,7 @@ describe('ReportService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: DemoDataService, useValue: mockDemoDataService },
+        { provide: LiveDataService, useValue: mockLiveDataService },
         { provide: NarrativeService, useValue: mockNarrativeService },
       ],
     }).compile();
@@ -183,6 +194,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -277,6 +289,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaOverload },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -299,6 +312,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaExact },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -439,6 +453,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -458,6 +473,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -476,6 +492,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -496,6 +513,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -518,6 +536,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
@@ -535,6 +554,7 @@ describe('ReportService', () => {
           { provide: PrismaService, useValue: mockPrismaCB },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: DemoDataService, useValue: mockDemoDataService },
+          { provide: LiveDataService, useValue: mockLiveDataService },
           { provide: NarrativeService, useValue: mockNarrativeService },
         ],
       }).compile();
