@@ -1,8 +1,7 @@
 {
   "page1": {
-    "startAt": 0,
-    "maxResults": 4,
-    "total": 7,
+    "nextPageToken": "tok2",
+    "isLast": false,
     "issues": [
       {
         "id": "10001",
@@ -100,9 +99,7 @@
     ]
   },
   "page2": {
-    "startAt": 4,
-    "maxResults": 4,
-    "total": 7,
+    "isLast": true,
     "issues": [
       {
         "id": "10005",

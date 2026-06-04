@@ -5,10 +5,13 @@ import { ConfigService } from '@nestjs/config';
 const fixtureData = require('../../test/fixtures/jira-search.json');
 
 // Fake HttpAdapter that returns page1, then page2 on successive calls
+// Also records every call for assertion purposes
 class FakeHttpAdapter implements HttpAdapter {
   private callCount = 0;
+  readonly calls: Array<{ url: string; params?: Record<string, unknown> }> = [];
 
-  async get<T>(_url: string, _params?: Record<string, unknown>): Promise<T> {
+  async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
+    this.calls.push({ url, params });
     const page = this.callCount === 0 ? fixtureData.page1 : fixtureData.page2;
     this.callCount++;
     return page as unknown as T;
@@ -35,6 +38,25 @@ describe('JiraClient', () => {
     expect(issues[0].key).toBe('PROJ-1');
     expect(issues[4].key).toBe('PROJ-5');
     expect(issues[6].key).toBe('PROJ-7');
+  });
+
+  it('uses /rest/api/3/search/jql as the endpoint', async () => {
+    await client.searchIssues('project = PROJ ORDER BY updated DESC');
+    expect(fakeHttp.calls[0].url).toBe('/rest/api/3/search/jql');
+    expect(fakeHttp.calls[1].url).toBe('/rest/api/3/search/jql');
+  });
+
+  it('sends nextPageToken on the second request but not the first', async () => {
+    await client.searchIssues('project = PROJ ORDER BY updated DESC');
+    // First request must NOT include nextPageToken
+    expect(fakeHttp.calls[0].params).not.toHaveProperty('nextPageToken');
+    // Second request must carry the token returned by page1
+    expect(fakeHttp.calls[1].params).toHaveProperty('nextPageToken', 'tok2');
+  });
+
+  it('makes exactly two HTTP calls for a two-page result set', async () => {
+    await client.searchIssues('project = PROJ ORDER BY updated DESC');
+    expect(fakeHttp.calls).toHaveLength(2);
   });
 
   it('parses fields.issuetype.name on the first issue', async () => {

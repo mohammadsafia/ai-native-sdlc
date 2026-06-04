@@ -63,7 +63,8 @@ export interface JiraIssue {
 
 export interface JiraSearchResponse {
   issues: JiraIssue[];
-  startAt: number;
-  maxResults: number;
-  total: number;
+  nextPageToken?: string;
+  isLast?: boolean;
+  /** @deprecated Not returned by /rest/api/3/search/jql; kept for compatibility only. */
+  total?: number;
 }

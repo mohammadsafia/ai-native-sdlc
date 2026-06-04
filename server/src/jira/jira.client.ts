@@ -54,7 +54,7 @@ export class JiraClient {
   }
 
   /**
-   * Paginate GET /rest/api/3/search with expand=changelog.
+   * Paginate GET /rest/api/3/search/jql with expand=changelog (cursor-based).
    * Returns all issues across all pages.
    * Read-only: GETs only.
    */
@@ -63,28 +63,31 @@ export class JiraClient {
     opts: { maxResults?: number } = {},
   ): Promise<JiraIssue[]> {
     const maxResults = opts.maxResults ?? 100;
-    let startAt = 0;
+    let nextPageToken: string | undefined;
     const allIssues: JiraIssue[] = [];
 
     while (true) {
+      const params: Record<string, unknown> = {
+        jql,
+        expand: 'changelog',
+        maxResults,
+        fields:
+          'summary,issuetype,status,assignee,updated,customfield_11025,customfield_10022,customfield_10016,customfield_10028',
+        ...(nextPageToken ? { nextPageToken } : {}),
+      };
+
       const page = await this.getHttp().get<JiraSearchResponse>(
-        '/rest/api/3/search',
-        {
-          jql,
-          expand: 'changelog',
-          maxResults,
-          startAt,
-          fields:
-            'summary,issuetype,status,assignee,updated,customfield_11025,customfield_10022,customfield_10016,customfield_10028',
-        },
+        '/rest/api/3/search/jql',
+        params,
       );
 
       allIssues.push(...page.issues);
 
-      if (startAt + page.issues.length >= page.total) {
+      // Stop when Jira signals last page, no cursor returned, or empty page guard
+      if (page.isLast === true || !page.nextPageToken || page.issues.length === 0) {
         break;
       }
-      startAt += page.issues.length;
+      nextPageToken = page.nextPageToken;
     }
 
     return allIssues;
